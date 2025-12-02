@@ -2,28 +2,23 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import React from "react";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { formattedDate } from "@/utils/formattedDate";
-import {LinearGradient} from "expo-linear-gradient";
-
-
 
 const NewsCard = ({
   image,
   title,
   createdAt,
-  author
+  author,
 }: {
   image: string;
   title: string;
   createdAt: string;
-  author: string
+  author: string;
 }) => {
-
-
   const formattedCreatedAt = formattedDate(createdAt);
 
   return (
     <View style={styles.cardContainer}>
-      <View style={styles.imageTextContainer}>
+      {/* <View style={styles.imageTextContainer}>
         <Image
           style={styles.cardImage}
           source={
@@ -49,7 +44,7 @@ const NewsCard = ({
         <TouchableOpacity style={styles.arrowRight} onPress={() => {}}>
           <FontAwesome6 name="arrow-right" size={20} color="black" />
         </TouchableOpacity>
-      </View>
+      </View> */}
     </View>
 
     //     <View style={styles.cardContainer}>
@@ -87,11 +82,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     maxHeight: 200,
     overflow: "hidden",
-    flex: 1
+    flex: 1,
   },
 
-    background: {
-    position: 'absolute',
+  background: {
+    position: "absolute",
     left: 0,
     right: 0,
     top: 0,
@@ -100,7 +95,7 @@ const styles = StyleSheet.create({
 
   imageTextContainer: {
     position: "relative",
-    height: "80%"
+    height: "80%",
   },
   textContainer: {
     padding: 10,
@@ -111,8 +106,8 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     maxWidth: "100%",
-    height: "100%"
-    },
+    height: "100%",
+  },
 
   title: {
     fontSize: 16,
@@ -129,7 +124,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: "center",
     paddingLeft: 10,
-    flexDirection: "row"
+    flexDirection: "row",
   },
 
   arrowRight: {
