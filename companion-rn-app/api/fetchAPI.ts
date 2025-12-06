@@ -1,5 +1,11 @@
 import { baseURL } from "@/utils/api";
 
+interface userMessage {
+  chat_id: string;
+  user_id: string;
+  message: string;
+}
+
 export const postCommunication = async (body: Object) => {
   try {
     const res = await fetch(`${baseURL + "/posts/communication"}`, {
@@ -57,12 +63,30 @@ export const getPythonBackend = async () => {
   }
 };
 
-export const sendChatMessage = async (userQuery: string) => {
+export const getChatMessages = async () => {
+  try {
+    const res = await fetch(
+      "http://localhost:8000/chat/5616b7de-165c-44a9-88a7-e2b5d2e4523c/5616b7de-165c-44a9-88a7-e2b5d2e4523d"
+    );
+
+    if (!res.ok) {
+      console.log("Error fetching data");
+    }
+
+    const data = await res.json();
+    console.log(data);
+    return data;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const sendChatMessage = async (userQuery: userMessage) => {
   try {
     const res = await fetch(`${baseURL + "/chat/message"}`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ userQuery: userQuery }),
+      body: JSON.stringify(userQuery),
     });
 
     console.log("User message:", userQuery);
@@ -77,6 +101,6 @@ export const sendChatMessage = async (userQuery: string) => {
 
     return data;
   } catch (error) {
-    console.error(error);
+    console.error("Failed to send new message: " + error);
   }
 };
