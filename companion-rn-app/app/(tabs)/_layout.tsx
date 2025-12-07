@@ -8,12 +8,13 @@ import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { TabBar } from "@/components/TabBar";
+import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <Tabs tabBar={(props) => <TabBar {...props} />}>
+    <Tabs tabBar={(props: BottomTabBarProps) => <TabBar {...props} />}>
       <Tabs.Screen
         name="index"
         options={{
@@ -27,16 +28,16 @@ export default function TabLayout() {
           title: "News",
         }}
       />
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="events"
         options={{
           title: "Events",
         }}
-      />
+      /> */}
       <Tabs.Screen
-        name="store"
+        name="chat"
         options={{
-          title: "Store",
+          title: "Chat",
         }}
       />
     </Tabs>

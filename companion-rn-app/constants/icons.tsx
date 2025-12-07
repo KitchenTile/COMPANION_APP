@@ -1,4 +1,5 @@
-import { Feather, FontAwesome6, Ionicons } from "@expo/vector-icons";
+import { AntDesign, Feather, FontAwesome6, Ionicons } from "@expo/vector-icons";
+import React from "react";
 
 export const icon = {
   events: (props: any) => (
@@ -11,8 +12,12 @@ export const icon = {
   news: (props: any) => (
     <FontAwesome6 name="newspaper" size={24} color="black" {...props} />
   ),
-  // profile: (props: any) =>  <Feather name='user' size={24} color={"#222"} {...props}/>,
-  store: (props: any) => (
-    <Feather name="shopping-bag" size={24} color="black" {...props} />
+  chat: (props: any) => (
+    <Ionicons
+      name="chatbubble-ellipses-outline"
+      size={24}
+      color="black"
+      {...props}
+    />
   ),
 };

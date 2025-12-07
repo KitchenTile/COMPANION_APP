@@ -12,6 +12,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import React from "react";
 
 export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { colors } = useTheme();
@@ -102,7 +103,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 const styles = StyleSheet.create({
   tabbar: {
     position: "absolute",
-    bottom: 40,
+    bottom: 20,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#fff",
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 35,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
+    shadowOffset: { width: 0, height: 5 },
     shadowRadius: 10,
     shadowOpacity: 0.1,
     boxShadow: "rgba(0, 0, 0, 0.3) 0px 10px 20px 0px",
