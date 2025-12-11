@@ -29,10 +29,7 @@ export default function HomeScreen() {
     //     console.log(error);
     //   }
     // };
-
     // fetchStuff();
-
-    getPythonBackend();
   });
   return (
     <ParallaxScrollView

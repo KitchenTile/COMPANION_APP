@@ -1,7 +1,5 @@
 import {
-  Button,
   Dimensions,
-  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -13,19 +11,10 @@ import { getChatMessages, sendChatMessage } from "@/api/fetchAPI";
 import { ScrollView } from "react-native";
 import Animated from "react-native-reanimated";
 
-// const pulse: CSSAnimationKeyframes = {
-//   from: {
-//     transform: [{ scale: 0.8 }, { rotateZ: "-15deg" }],
-//   },
-//   to: {
-//     transform: [{ scale: 1.2 }, { rotateZ: "15deg" }],
-//   },
-// };
-
 const ChatPage = () => {
   const [userInput, setUserInput] = useState("");
   const [messages, setMessages] = useState<messageInterface[]>();
-  const [taskId, settaskId] = useState(null);
+  const [taskId, setTaskId] = useState(null);
   const [pendingToolId, setPendingToolId] = useState(null);
   const [loadingMessage, setLoadingMessage] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -82,7 +71,7 @@ const ChatPage = () => {
       // console.log("response");
       // console.log(res);
       //set task id for the current "issue"
-      settaskId(res.task_id);
+      setTaskId(res.task_id);
       if (res.pending_tool_id) {
         setPendingToolId(res.pending_tool_id);
       }
@@ -90,7 +79,7 @@ const ChatPage = () => {
       // if we finished with the current task use, then clean state
       if (res.status === "Completed") {
         setPendingToolId(null);
-        settaskId(null);
+        setTaskId(null);
 
         //and add bot message to ui before fetching
         const modelMesage = {
@@ -146,7 +135,7 @@ const ChatPage = () => {
             </Text>
           </View>
         ))}
-        {loadingMessage && (
+        {/* {loadingMessage && (
           <View style={[styles.loadingBubble]}>
             <Animated.View
               style={[
@@ -160,9 +149,8 @@ const ChatPage = () => {
                 },
               ]}
             />
-            {/* <View style={[styles.loadingDot]} /> */}
           </View>
-        )}
+        )} */}
       </ScrollView>
       <View style={styles.inputRow}>
         <TextInput
