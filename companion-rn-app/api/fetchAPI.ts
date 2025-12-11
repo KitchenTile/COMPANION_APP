@@ -4,9 +4,48 @@ interface userMessage {
   chat_id: string;
   user_id: string;
   message: string;
-  task_id: string | null;
-  pending_tool_id: string | null;
 }
+
+export const postCommunication = async (body: Object) => {
+  try {
+    const res = await fetch(`${baseURL + "/posts/communication"}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    return res;
+  } catch (error) {
+    console.error(error);
+  }
+};
+export const postEvent = async (body: Object) => {
+  try {
+    const res = await fetch(`${baseURL + "/posts/event"}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    return res;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const getCommunications = async () => {
+  try {
+    const res = await fetch(`${baseURL + "/posts"}`);
+
+    if (!res.ok) {
+      console.log("Error fetching data");
+    }
+
+    const data = await res.json();
+    console.log(data);
+    return data;
+  } catch (error) {
+    console.error("error:" + error);
+  }
+};
 
 export const getPythonBackend = async () => {
   try {
@@ -27,7 +66,7 @@ export const getPythonBackend = async () => {
 export const getChatMessages = async () => {
   try {
     const res = await fetch(
-      "http://localhost:8000/chat/5616b7de-165c-44a9-88a7-e2b5d2e4523c/f4f1cb57-c89e-4327-9a80-868c03ec7344"
+      "http://localhost:8000/chat/5616b7de-165c-44a9-88a7-e2b5d2e4523c/5616b7de-165c-44a9-88a7-e2b5d2e4523d"
     );
 
     if (!res.ok) {
@@ -35,6 +74,7 @@ export const getChatMessages = async () => {
     }
 
     const data = await res.json();
+    console.log(data);
     return data;
   } catch (error) {
     console.error(error);

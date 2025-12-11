@@ -1,34 +1,11 @@
-import {
-  Button,
-  Dimensions,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import React, { useEffect, useRef, useState } from "react";
+import { Button, StyleSheet, Text, TextInput, View } from "react-native";
+import React, { useEffect, useState } from "react";
 import { getChatMessages, sendChatMessage } from "@/api/fetchAPI";
 import { ScrollView } from "react-native";
-import Animated, { css, CSSAnimationKeyframes } from "react-native-reanimated";
-
-// const pulse: CSSAnimationKeyframes = {
-//   from: {
-//     transform: [{ scale: 0.8 }, { rotateZ: "-15deg" }],
-//   },
-//   to: {
-//     transform: [{ scale: 1.2 }, { rotateZ: "15deg" }],
-//   },
-// };
 
 const ChatPage = () => {
   const [userInput, setUserInput] = useState("");
   const [messages, setMessages] = useState<messageInterface[]>();
-  const [taskId, settaskId] = useState(null);
-  const [pendingToolId, setPendingToolId] = useState(null);
-  const [loadingMessage, setLoadingMessage] = useState(true);
-  const scrollViewRef = useRef<ScrollView>(null);
 
   interface messageInterface {
     content: string;
@@ -50,230 +27,50 @@ const ChatPage = () => {
   }, []);
 
   const sendMessage = async () => {
-    try {
-      if (userInput === "") return;
-      const message = userInput;
-
-      // add placeholder message to the chat
-      const placeholderMessage = {
-        role: "user",
-        content: message,
-        timestamp: new Date().toISOString(),
-      };
-      setMessages((prev) =>
-        prev ? [...prev, placeholderMessage] : [placeholderMessage]
-      );
-
-      //set inut back to an empty string
-      setUserInput("");
-
-      //loading bubble
-      setLoadingMessage(true);
-
-      //send message to backend
+    if (userInput !== "") {
       const res = await sendChatMessage({
-        chat_id: "f4f1cb57-c89e-4327-9a80-868c03ec7344",
+        chat_id: "5616b7de-165c-44a9-88a7-e2b5d2e4523d",
         user_id: "5616b7de-165c-44a9-88a7-e2b5d2e4523c",
-        message: message,
-        task_id: taskId,
-        pending_tool_id: pendingToolId,
+        message: userInput,
       });
-
-      // console.log("response");
-      // console.log(res);
-      //set task id for the current "issue"
-      settaskId(res.task_id);
-      if (res.pending_tool_id) {
-        setPendingToolId(res.pending_tool_id);
-      }
-
-      // if we finished with the current task use, then clean state
-      if (res.status === "Completed") {
-        setPendingToolId(null);
-        settaskId(null);
-
-        //and add bot message to ui before fetching
-        const modelMesage = {
-          role: "assistant",
-          content: res.response_text,
-          timestamp: new Date().toISOString(),
-        };
-        setMessages((prev) => (prev ? [...prev, modelMesage] : [modelMesage]));
-
-        //hide bubble
-        setLoadingMessage(false);
-      }
-
-      //refetch the chat data
+      console.log(res);
+      setUserInput("");
       const messages = await getChatMessages();
       setMessages(messages);
-      return;
-    } catch (error) {
-      console.log("error sending message: " + error);
     }
+    return;
   };
 
-  useEffect(() => {
-    console.log(messages);
-  }, [messages]);
-
   return (
-    <View style={styles.pageContainer}>
-      <ScrollView
-        style={{
-          height: Dimensions.get("window").height * 0.7,
-          width: Dimensions.get("window").width * 1,
-        }}
-        contentContainerStyle={styles.chatContainer}
-        ref={scrollViewRef}
-        onContentSizeChange={() => scrollViewRef.current?.scrollToEnd()}
-      >
-        {messages?.map((individualMessage: messageInterface, index) => (
-          <View
-            style={[
-              styles.messageContainer,
-              individualMessage.role === "user" && styles.userMessageContainer,
-            ]}
-            key={index}
-          >
-            <Text
-              style={[
-                styles.message,
-                individualMessage.role === "user" && styles.userMessage,
-              ]}
-            >
-              {individualMessage.content}
-            </Text>
-          </View>
-        ))}
-        {loadingMessage && (
-          <View style={[styles.loadingBubble]}>
-            <Animated.View
-              style={[
-                styles.loadingDot,
-                {
-                  // animationName: pulse,
-                  animationDuration: "1s",
-                  animationIterationCount: "infinite",
-                  animationTimingFunction: "ease-in-out",
-                  animationDirection: "alternate",
-                },
-              ]}
-            />
-            {/* <View style={[styles.loadingDot]} /> */}
-          </View>
-        )}
-      </ScrollView>
-      <View style={styles.inputRow}>
-        <TextInput
-          style={styles.input}
-          onChangeText={setUserInput}
-          value={userInput}
-          placeholder="Talk to me"
-        />
-        <TouchableOpacity onPress={sendMessage} style={styles.btn}>
-          <Text style={styles.btnTxt}>→</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    <ScrollView contentContainerStyle={styles.pageContainer}>
+      {messages?.map((individualMessage: messageInterface, index) => (
+        <Text key={index}>{individualMessage.content}</Text>
+      ))}
+      <TextInput
+        style={styles.input}
+        onChangeText={setUserInput}
+        value={userInput}
+        placeholder="placeholder text"
+      />
+      <Button
+        onPress={sendMessage}
+        title="Send"
+        color="#841584"
+        accessibilityLabel="Learn more about this purple button"
+      />
+    </ScrollView>
   );
 };
 
 export default ChatPage;
 
 const styles = StyleSheet.create({
-  pageContainer: { alignItems: "center", width: "100%" },
-
-  chatContainer: {
-    display: "flex",
-    padding: 0,
-    marginTop: 10,
-    flexDirection: "column",
-    paddingInline: 10,
-  },
-
-  messageContainer: {
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "flex-start",
-  },
-
-  message: {
-    marginBlock: 3,
-    display: "flex",
-    borderColor: "#4b5563",
-    padding: 10,
-    borderRadius: 10,
-    width: "auto",
-    maxWidth: 320,
-    borderWidth: 1,
-    borderStyle: "solid",
-    borderTopLeftRadius: 0,
-    backgroundColor: "#723feb",
-    color: "white",
-    fontSize: 18,
-  },
-
-  userMessageContainer: {
-    justifyContent: "flex-end",
-  },
-
-  userMessage: {
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 0,
-    color: "white",
-    backgroundColor: "#9777e2ff",
-  },
-
-  inputRow: {
-    display: "flex",
-    flexDirection: "row",
-    gap: 5,
-    marginTop: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#723feb",
-    borderStyle: "solid",
-  },
-
+  pageContainer: { alignItems: "center" },
   input: {
     height: 40,
+    margin: 12,
+    borderWidth: 1,
     padding: 10,
     width: 300,
-  },
-
-  btn: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    height: 40,
-    width: 40,
-  },
-
-  btnTxt: {
-    fontSize: 20,
-  },
-
-  //animation
-  loadingBubble: {
-    marginBottom: 3,
-    marginTop: 8,
-    display: "flex",
-    borderColor: "#4b5563",
-    borderRadius: 10,
-    width: 70,
-    height: 40,
-    borderWidth: 1,
-    borderStyle: "solid",
-    borderBottomLeftRadius: 0,
-    backgroundColor: "#723feb",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  loadingDot: {
-    height: 30,
-    width: 30,
-    backgroundColor: "white",
   },
 });
