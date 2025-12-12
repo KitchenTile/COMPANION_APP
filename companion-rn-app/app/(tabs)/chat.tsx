@@ -16,6 +16,7 @@ import Animated, {
   withRepeat,
   Easing,
 } from "react-native-reanimated";
+import TypingIndicator from "@/components/ui/TypingBubbleDots";
 
 const ChatPage = () => {
   const [userInput, setUserInput] = useState("");
@@ -155,7 +156,7 @@ const ChatPage = () => {
         ))}
         {loadingMessage && (
           <View style={[styles.loadingBubble]}>
-            <Animated.View style={[styles.loadingDot, animatedStyle]} />
+            <TypingIndicator />
           </View>
         )}
       </ScrollView>
@@ -262,7 +263,7 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
     borderBottomLeftRadius: 0,
     backgroundColor: "#723feb",
-    alignItems: "flex-start",
+    alignItems: "center",
     justifyContent: "center",
   },
 
