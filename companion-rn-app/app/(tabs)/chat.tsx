@@ -9,7 +9,13 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import { getChatMessages, sendChatMessage } from "@/api/fetchAPI";
 import { ScrollView } from "react-native";
-import Animated from "react-native-reanimated";
+import Animated, {
+  useSharedValue,
+  withTiming,
+  useAnimatedStyle,
+  withRepeat,
+  Easing,
+} from "react-native-reanimated";
 
 const ChatPage = () => {
   const [userInput, setUserInput] = useState("");
@@ -24,6 +30,23 @@ const ChatPage = () => {
     role: string;
     timestamp: string;
   }
+
+  const movementX = useSharedValue(20);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: movementX.value }],
+    };
+  });
+
+  useEffect(() => {
+    movementX.value = withRepeat(
+      withTiming(40, { duration: 700 }),
+      -1,
+      true,
+      () => {}
+    );
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -68,8 +91,6 @@ const ChatPage = () => {
         pending_tool_id: pendingToolId,
       });
 
-      // console.log("response");
-      // console.log(res);
       //set task id for the current "issue"
       setTaskId(res.task_id);
       if (res.pending_tool_id) {
@@ -90,8 +111,9 @@ const ChatPage = () => {
         setMessages((prev) => (prev ? [...prev, modelMesage] : [modelMesage]));
 
         //hide bubble
-        setLoadingMessage(false);
       }
+
+      setLoadingMessage(false);
 
       //refetch the chat data
       const messages = await getChatMessages();
@@ -101,10 +123,6 @@ const ChatPage = () => {
       console.log("error sending message: " + error);
     }
   };
-
-  useEffect(() => {
-    console.log(messages);
-  }, [messages]);
 
   return (
     <View style={styles.pageContainer}>
@@ -135,22 +153,11 @@ const ChatPage = () => {
             </Text>
           </View>
         ))}
-        {/* {loadingMessage && (
+        {loadingMessage && (
           <View style={[styles.loadingBubble]}>
-            <Animated.View
-              style={[
-                styles.loadingDot,
-                {
-                  // animationName: pulse,
-                  animationDuration: "1s",
-                  animationIterationCount: "infinite",
-                  animationTimingFunction: "ease-in-out",
-                  animationDirection: "alternate",
-                },
-              ]}
-            />
+            <Animated.View style={[styles.loadingDot, animatedStyle]} />
           </View>
-        )} */}
+        )}
       </ScrollView>
       <View style={styles.inputRow}>
         <TextInput
@@ -255,13 +262,14 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
     borderBottomLeftRadius: 0,
     backgroundColor: "#723feb",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "center",
   },
 
   loadingDot: {
-    height: 30,
-    width: 30,
+    height: 10,
+    width: 10,
     backgroundColor: "white",
+    borderRadius: "100%",
   },
 });
