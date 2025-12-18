@@ -32,23 +32,6 @@ const ChatPage = () => {
     timestamp: string;
   }
 
-  const movementX = useSharedValue(20);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateX: movementX.value }],
-    };
-  });
-
-  useEffect(() => {
-    movementX.value = withRepeat(
-      withTiming(40, { duration: 700 }),
-      -1,
-      true,
-      () => {}
-    );
-  }, []);
-
   useEffect(() => {
     async function fetchData() {
       try {
@@ -91,6 +74,8 @@ const ChatPage = () => {
         task_id: taskId,
         pending_tool_id: pendingToolId,
       });
+
+      console.log(res);
 
       //set task id for the current "issue"
       setTaskId(res.task_id);
