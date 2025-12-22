@@ -9,14 +9,8 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import { getChatMessages, sendChatMessage } from "@/api/fetchAPI";
 import { ScrollView } from "react-native";
-import Animated, {
-  useSharedValue,
-  withTiming,
-  useAnimatedStyle,
-  withRepeat,
-  Easing,
-} from "react-native-reanimated";
 import TypingIndicator from "@/components/ui/TypingBubbleDots";
+import * as Location from "expo-location";
 
 const ChatPage = () => {
   const [userInput, setUserInput] = useState<string>("");
@@ -25,6 +19,10 @@ const ChatPage = () => {
   const [pendingToolId, setPendingToolId] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState<boolean>(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const [status, requestPermission] = Location.useBackgroundPermissions();
+  const [location, setLocation] = useState<Location.LocationObject | null>(
+    null
+  );
 
   interface messageInterface {
     content: string;
@@ -44,6 +42,63 @@ const ChatPage = () => {
     receiver: string;
   }
 
+  // location effect
+  useEffect(() => {
+    // get permissions
+    async function getBackgroundLocationPermisions() {
+      let { status } = await Location.requestBackgroundPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Permission to access location was denied");
+        return;
+      }
+      setLocation(location);
+    }
+
+    getBackgroundLocationPermisions();
+
+    //get initial location
+    async function getCurrentLocation() {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Permission to access location was denied");
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      setLocation(location);
+
+      //check if phone locations are enabled
+      console.log("is location enabled");
+      console.log(await Location.hasServicesEnabledAsync());
+    }
+
+    getCurrentLocation();
+
+    if (!location) {
+      console.log("No location available");
+      return;
+    }
+
+    console.log(location.coords.latitude, location.coords.longitude);
+
+    // update location every 10 meters or 1 second (android)
+    Location.watchPositionAsync(
+      {
+        accuracy: Location.Accuracy.High,
+        timeInterval: 1000,
+        distanceInterval: 10,
+      },
+      (location) => location && setLocation(location)
+    );
+  }, []);
+
+  // check for location changes
+  useEffect(() => {
+    console.log("location updated");
+    console.log(location?.coords.latitude, location?.coords.longitude);
+  }, [location]);
+
+  //fetch data from app start
   useEffect(() => {
     async function fetchData() {
       try {
@@ -57,6 +112,7 @@ const ChatPage = () => {
     fetchData();
   }, []);
 
+  // connect to chatId's websocket
   useEffect(() => {
     const ws = new WebSocket(
       `ws://localhost:8000/ws/f4f1cb57-c89e-4327-9a80-868c03ec7344`
@@ -66,11 +122,11 @@ const ChatPage = () => {
       console.log("Connected!");
     };
     ws.onerror = (e) => {
-      console.log("❌ WebSocket Error:", e);
+      console.log("WebSocket Error:", e);
     };
 
     ws.onclose = (e) => {
-      console.log("⚠️ WebSocket Closed:", e.code, e.reason);
+      console.log("WebSocket Closed:", e.code, e.reason);
     };
 
     ws.onmessage = (event) => {
@@ -83,6 +139,7 @@ const ChatPage = () => {
     return () => ws.close();
   }, []);
 
+  // handle info from websocket
   const handleIncomingPacket = async (packet: packetInterface) => {
     if (packet.performative === "REQUEST") {
       setPendingToolId(packet.pending_tool_id);
@@ -108,6 +165,7 @@ const ChatPage = () => {
     setLoadingMessage(false);
   };
 
+  //send HTTP request to backend with user message
   const sendMessage = async () => {
     try {
       if (userInput === "") return;
