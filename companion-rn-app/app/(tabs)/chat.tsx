@@ -19,17 +19,29 @@ import Animated, {
 import TypingIndicator from "@/components/ui/TypingBubbleDots";
 
 const ChatPage = () => {
-  const [userInput, setUserInput] = useState("");
+  const [userInput, setUserInput] = useState<string>("");
   const [messages, setMessages] = useState<messageInterface[]>();
-  const [taskId, setTaskId] = useState(null);
-  const [pendingToolId, setPendingToolId] = useState(null);
-  const [loadingMessage, setLoadingMessage] = useState(false);
+  const [taskId, setTaskId] = useState<string | null>(null);
+  const [pendingToolId, setPendingToolId] = useState<string | null>(null);
+  const [loadingMessage, setLoadingMessage] = useState<boolean>(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   interface messageInterface {
     content: string;
     role: string;
     timestamp: string;
+  }
+
+  interface packetInterface {
+    performative: string;
+    message_id: string;
+    user_id: string;
+    task_id: string | null;
+    chat_id: string;
+    pending_tool_id: string | null;
+    content: string;
+    sender: string;
+    receiver: string;
   }
 
   useEffect(() => {
@@ -44,6 +56,57 @@ const ChatPage = () => {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const ws = new WebSocket(
+      `ws://localhost:8000/ws/f4f1cb57-c89e-4327-9a80-868c03ec7344`
+    );
+
+    ws.onopen = () => {
+      console.log("Connected!");
+    };
+    ws.onerror = (e) => {
+      console.log("❌ WebSocket Error:", e);
+    };
+
+    ws.onclose = (e) => {
+      console.log("⚠️ WebSocket Closed:", e.code, e.reason);
+    };
+
+    ws.onmessage = (event) => {
+      const packet = JSON.parse(event.data);
+      handleIncomingPacket(packet);
+      console.log("packet");
+      console.log(packet);
+    };
+
+    return () => ws.close();
+  }, []);
+
+  const handleIncomingPacket = async (packet: packetInterface) => {
+    if (packet.performative === "REQUEST") {
+      setPendingToolId(packet.pending_tool_id);
+      setTaskId(packet.task_id);
+    }
+
+    if (packet.performative === "INFORM") {
+      setPendingToolId(null);
+      setTaskId(null);
+
+      //and add bot message to ui before fetching
+      const modelMesage = {
+        role: "assistant",
+        content: packet.content,
+        timestamp: new Date().toISOString(),
+      };
+
+      setMessages((prev) => (prev ? [...prev, modelMesage] : [modelMesage]));
+    }
+    const messages = await getChatMessages();
+    setMessages(messages);
+
+    setLoadingMessage(false);
+  };
 
   const sendMessage = async () => {
     try {
@@ -95,11 +158,9 @@ const ChatPage = () => {
           timestamp: new Date().toISOString(),
         };
         setMessages((prev) => (prev ? [...prev, modelMesage] : [modelMesage]));
-
         //hide bubble
+        setLoadingMessage(false);
       }
-
-      setLoadingMessage(false);
 
       //refetch the chat data
       const messages = await getChatMessages();
