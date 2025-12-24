@@ -12,6 +12,7 @@ import { ScrollView } from "react-native";
 import TypingIndicator from "@/components/ui/TypingBubbleDots";
 import * as Location from "expo-location";
 import { isUserOnTrack } from "@/utils/locationUtils";
+import { v4 as uuidv4 } from "uuid";
 
 const ChatPage = () => {
   const [userInput, setUserInput] = useState<string>("");
@@ -23,6 +24,9 @@ const ChatPage = () => {
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null
   );
+  const [ws, setWs] = useState<WebSocket | null>(null);
+  const [currentPolyline, setCurrentPolyline] = useState<string | null>(null);
+  const [userOnTrack, setUserOnTrack] = useState<boolean | null>(null);
 
   interface messageInterface {
     content: string;
@@ -44,7 +48,8 @@ const ChatPage = () => {
 
   // location effect
   useEffect(() => {
-    // get permissions
+    let subscription: Location.LocationSubscription | null = null;
+
     async function getBackgroundLocationPermisions() {
       let { status } = await Location.requestBackgroundPermissionsAsync();
       if (status !== "granted") {
@@ -56,40 +61,41 @@ const ChatPage = () => {
 
     getBackgroundLocationPermisions();
 
-    //get initial location
-    async function getCurrentLocation() {
-      let { status } = await Location.requestForegroundPermissionsAsync();
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+
       if (status !== "granted") {
-        console.log("Permission to access location was denied");
+        console.log("Permission denied");
         return;
       }
 
-      let location = await Location.getCurrentPositionAsync({});
-      setLocation(location);
+      // Initial position
+      const initialLocation = await Location.getCurrentPositionAsync({});
+      setLocation(initialLocation);
 
-      //check if phone locations are enabled
-      console.log("is location enabled");
-      console.log(await Location.hasServicesEnabledAsync());
-    }
+      console.log(
+        "initial location:",
+        initialLocation.coords.latitude,
+        initialLocation.coords.longitude
+      );
 
-    getCurrentLocation();
+      // Start watching
+      subscription = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.High,
+          timeInterval: 1000,
+          distanceInterval: 1,
+        },
+        (loc) => {
+          console.log("update:", loc.coords.latitude, loc.coords.longitude);
+          setLocation(loc);
+        }
+      );
+    })();
 
-    if (!location) {
-      console.log("No location available");
-      return;
-    }
-
-    console.log(location.coords.latitude, location.coords.longitude);
-
-    // update location every 10 meters or 1 second (android)
-    Location.watchPositionAsync(
-      {
-        accuracy: Location.Accuracy.High,
-        timeInterval: 1000,
-        distanceInterval: 10,
-      },
-      (location) => location && setLocation(location)
-    );
+    return () => {
+      subscription?.remove();
+    };
   }, []);
 
   // check for location changes
@@ -98,14 +104,31 @@ const ChatPage = () => {
     console.log(location?.coords.latitude, location?.coords.longitude);
 
     const polyline =
-      "ozyyHfek@BFdCiDtDeGvB}DlDmHxCmHrAoDhCeIjIkXxPsf@h@cBb@sBb@_DTuCDuCEcDOsC_A{IMgCCsCDsCNuB\\sC`@uBlCsJh@oCZ{BhBgRj@oFbAeI`@mBTw@l@_BbAiBzAkBp@o@fBkArAi@dBc@xCSvBEvIAvCInD[zA]`Bg@bBaA~CqBbCgBpD_DjHaHhGaH`FeHzDgHzCeH`CeHnBaH|A{GhD_PrAaGzAsFhBeFpB{EzBoEbCkEvKwQdCkE`CuExB_FpBgFhBsFbBuFnGqUrA{EbB_FtCoHhAa@hAk@jD}B|I}HpGcGfKoLxQ}Rz@_A^Or@Ev@P\\X^l@x@bChDbLn@rBp@~B^v@\\`@dAl@|@Rz@BdAQdBw@`CwAdBoAlFyEvJcJjMwM`FyEv@m@d@S`Dk@|DeAbEoA|FeCfBy@t@KzC?pAAfASx@c@PQj@iAnF{MjFsLX{@ZeBfFm]b@eB\\}@`@o@fAeAhGuEr@c@CU";
-
+      "yb{yHdjj@Di@T}@FgABa@A?KAIlAKp@GRm@jJIzDLdI?jCLxBPx@P^l@b@`@NJ?hBv@pBpAj@d@`BzBl@l@lAp@h@VJC^XZBl@T^GzDgEdDiEvAaBGS@BbC{Cs@kCBFdCiDtDeGvB}DlDmHxCmHrAoDhCeIjIkXxPsf@h@cBb@sBb@_DTuCDuCEcDOsC_A{IMgCCsCDsCNuB\\sC`@uBlCsJh@oCZ{BhBgRj@oFbAeI`@mBTw@l@_BbAiBzAkBp@o@fBkArAi@dBc@xCSvBEvIAvCInD[zA]`Bg@bBaA~CqBbCgBpD_DjHaHhGaH`FeHzDgHzCeH`CeHnBaH|A{GhD_PrAaGzAsFhBeFpB{EzBoEbCkEvKwQdCkE`CuExB_FpBgFhBsFbBuFnGqUrA{EbB_FtCoHhAa@hAk@jD}B|I}HpGcGfKoLxQ}Rz@_A^Or@Ev@P\\X^l@x@bChDbLn@rBp@~B^v@\\`@dAl@|@Rz@BdAQdBw@`CwAdBoAlFyEvJcJjMwM`FyEv@m@d@S`Dk@|DeAbEoA|FeCfBy@t@KzC?pAAfASx@c@PQj@iAnF{MjFsLX{@ZeBfFm]b@eB\\}@`@o@fAeAhGuEr@c@CUj@aUECKNOc@NSHCl@s@AGHVhCyCNKvGqITW@GhIiKd@mAHLNi@B_@AgBf@gAAKDKACv@}@pJuMvAsBn@g@\\KPXXJd@KRQ\\s@PKvBMvAIb@KXeBJaAFGNy@`@gAZg@dPmJxDsBzFkCtDwA~EoDfBeA~Aa@?QA@\\C?ILA@Fl@Dl@RtDjBE`@^PJvCLtAJd@b@vA";
     const decodePolyline = require("decode-google-map-polyline");
 
+    //if we have location
     if (location?.coords.latitude !== undefined) {
+      // check if user's on track
+      const userOnTrack = isUserOnTrack(location, decodePolyline(polyline));
+
       console.log("--- is user on track? ---");
-      console.log(isUserOnTrack(location, decodePolyline(polyline)));
+      console.log(userOnTrack);
       console.log("------");
+
+      const packet = {
+        performative: "INFORM",
+        message_id: uuidv4(),
+        user_id: "5616b7de-165c-44a9-88a7-e2b5d2e4523c",
+        task_id: taskId,
+        chat_id: "f4f1cb57-c89e-4327-9a80-868c03ec7344",
+        pending_tool_id: pendingToolId,
+        content: { message: "USER OFF TRACK" },
+        sender: "user",
+        receiver: "ORCHESTRATOR_AGENT",
+      };
+
+      sendPacket(packet);
     }
   }, [location]);
 
@@ -131,6 +154,7 @@ const ChatPage = () => {
 
     ws.onopen = () => {
       console.log("Connected!");
+      setWs(ws);
     };
     ws.onerror = (e) => {
       console.log("WebSocket Error:", e);
@@ -174,6 +198,10 @@ const ChatPage = () => {
     setMessages(messages);
 
     setLoadingMessage(false);
+  };
+
+  const sendPacket = (packet: packetInterface) => {
+    if (ws) ws.send(JSON.stringify(packet));
   };
 
   //send HTTP request to backend with user message
