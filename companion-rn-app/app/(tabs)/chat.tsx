@@ -26,10 +26,9 @@ const ChatPage = () => {
   );
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [currentPolyline, setCurrentPolyline] = useState<string | null>(null);
-  const [userOnTrack, setUserOnTrack] = useState<boolean | null>(null);
 
   interface messageInterface {
-    content: string;
+    content: object | string;
     role: string;
     timestamp: string;
   }
@@ -41,9 +40,10 @@ const ChatPage = () => {
     task_id: string | null;
     chat_id: string;
     pending_tool_id: string | null;
-    content: string;
+    content: object | string;
     sender: string;
     receiver: string;
+    polyline?: string;
   }
 
   // location effect
@@ -107,14 +107,21 @@ const ChatPage = () => {
       "yb{yHdjj@Di@T}@FgABa@A?KAIlAKp@GRm@jJIzDLdI?jCLxBPx@P^l@b@`@NJ?hBv@pBpAj@d@`BzBl@l@lAp@h@VJC^XZBl@T^GzDgEdDiEvAaBGS@BbC{Cs@kCBFdCiDtDeGvB}DlDmHxCmHrAoDhCeIjIkXxPsf@h@cBb@sBb@_DTuCDuCEcDOsC_A{IMgCCsCDsCNuB\\sC`@uBlCsJh@oCZ{BhBgRj@oFbAeI`@mBTw@l@_BbAiBzAkBp@o@fBkArAi@dBc@xCSvBEvIAvCInD[zA]`Bg@bBaA~CqBbCgBpD_DjHaHhGaH`FeHzDgHzCeH`CeHnBaH|A{GhD_PrAaGzAsFhBeFpB{EzBoEbCkEvKwQdCkE`CuExB_FpBgFhBsFbBuFnGqUrA{EbB_FtCoHhAa@hAk@jD}B|I}HpGcGfKoLxQ}Rz@_A^Or@Ev@P\\X^l@x@bChDbLn@rBp@~B^v@\\`@dAl@|@Rz@BdAQdBw@`CwAdBoAlFyEvJcJjMwM`FyEv@m@d@S`Dk@|DeAbEoA|FeCfBy@t@KzC?pAAfASx@c@PQj@iAnF{MjFsLX{@ZeBfFm]b@eB\\}@`@o@fAeAhGuEr@c@CUj@aUECKNOc@NSHCl@s@AGHVhCyCNKvGqITW@GhIiKd@mAHLNi@B_@AgBf@gAAKDKACv@}@pJuMvAsBn@g@\\KPXXJd@KRQ\\s@PKvBMvAIb@KXeBJaAFGNy@`@gAZg@dPmJxDsBzFkCtDwA~EoDfBeA~Aa@?QA@\\C?ILA@Fl@Dl@RtDjBE`@^PJvCLtAJd@b@vA";
     const decodePolyline = require("decode-google-map-polyline");
 
+    const decodedPolyline = decodePolyline(polyline);
+
+    //save the current polyline
+    setCurrentPolyline(decodedPolyline);
+
     //if we have location
     if (location?.coords.latitude !== undefined) {
       // check if user's on track
-      const userOnTrack = isUserOnTrack(location, decodePolyline(polyline));
+      const userOnTrack = isUserOnTrack(location, decodedPolyline);
 
       console.log("--- is user on track? ---");
       console.log(userOnTrack);
       console.log("------");
+
+      if (!currentPolyline) return;
 
       const packet = {
         performative: "INFORM",
@@ -123,8 +130,14 @@ const ChatPage = () => {
         task_id: taskId,
         chat_id: "f4f1cb57-c89e-4327-9a80-868c03ec7344",
         pending_tool_id: pendingToolId,
-        content: { message: "USER OFF TRACK" },
-        sender: "user",
+        content: {
+          message: `I am currently at ${location.coords.latitude}, ${
+            location.coords.longitude
+          }. I have deviated from the route. Please calculate a new route to the following destination ${
+            currentPolyline[currentPolyline.length - 1]
+          }.`,
+        },
+        sender: "USER",
         receiver: "ORCHESTRATOR_AGENT",
       };
 
@@ -184,6 +197,10 @@ const ChatPage = () => {
     if (packet.performative === "INFORM") {
       setPendingToolId(null);
       setTaskId(null);
+
+      if (packet.polyline) {
+        setCurrentPolyline(packet.polyline);
+      }
 
       //and add bot message to ui before fetching
       const modelMesage = {
@@ -293,7 +310,8 @@ const ChatPage = () => {
                 individualMessage.role === "user" && styles.userMessage,
               ]}
             >
-              {individualMessage.content}
+              {typeof individualMessage.content !== "object" &&
+                individualMessage.content}
             </Text>
           </View>
         ))}
