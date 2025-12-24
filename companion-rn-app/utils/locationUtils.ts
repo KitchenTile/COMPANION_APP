@@ -10,6 +10,8 @@ const formatPolyline = (polyline: coordsInterface[]) => {
     return [coords.lat, coords.lng];
   });
 
+  //   console.log(formattedPolyline);
+
   return formattedPolyline;
 };
 
@@ -57,10 +59,11 @@ export const isUserOnTrack = (
   const userLat = userLocation.coords.latitude;
   const userLng = userLocation.coords.longitude;
 
+  // iterate tthrough points and get the shortest distance from any given point
   for (let point of formattedPolyline) {
     const dist = equirectangularProjection(userLat, userLng, point);
     if (dist < minDistance) minDistance = dist;
   }
 
-  return minDistance < 800;
+  return minDistance < 200;
 };
