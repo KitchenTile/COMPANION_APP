@@ -11,6 +11,7 @@ import { getChatMessages, sendChatMessage } from "@/api/fetchAPI";
 import { ScrollView } from "react-native";
 import TypingIndicator from "@/components/ui/TypingBubbleDots";
 import * as Location from "expo-location";
+import { isUserOnTrack } from "@/utils/locationUtils";
 
 const ChatPage = () => {
   const [userInput, setUserInput] = useState<string>("");
@@ -19,7 +20,6 @@ const ChatPage = () => {
   const [pendingToolId, setPendingToolId] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState<boolean>(false);
   const scrollViewRef = useRef<ScrollView>(null);
-  const [status, requestPermission] = Location.useBackgroundPermissions();
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null
   );
@@ -96,6 +96,17 @@ const ChatPage = () => {
   useEffect(() => {
     console.log("location updated");
     console.log(location?.coords.latitude, location?.coords.longitude);
+
+    const polyline =
+      "ozyyHfek@BFdCiDtDeGvB}DlDmHxCmHrAoDhCeIjIkXxPsf@h@cBb@sBb@_DTuCDuCEcDOsC_A{IMgCCsCDsCNuB\\sC`@uBlCsJh@oCZ{BhBgRj@oFbAeI`@mBTw@l@_BbAiBzAkBp@o@fBkArAi@dBc@xCSvBEvIAvCInD[zA]`Bg@bBaA~CqBbCgBpD_DjHaHhGaH`FeHzDgHzCeH`CeHnBaH|A{GhD_PrAaGzAsFhBeFpB{EzBoEbCkEvKwQdCkE`CuExB_FpBgFhBsFbBuFnGqUrA{EbB_FtCoHhAa@hAk@jD}B|I}HpGcGfKoLxQ}Rz@_A^Or@Ev@P\\X^l@x@bChDbLn@rBp@~B^v@\\`@dAl@|@Rz@BdAQdBw@`CwAdBoAlFyEvJcJjMwM`FyEv@m@d@S`Dk@|DeAbEoA|FeCfBy@t@KzC?pAAfASx@c@PQj@iAnF{MjFsLX{@ZeBfFm]b@eB\\}@`@o@fAeAhGuEr@c@CU";
+
+    const decodePolyline = require("decode-google-map-polyline");
+
+    if (location?.coords.latitude !== undefined) {
+      console.log("--- is user on track? ---");
+      console.log(isUserOnTrack(location, decodePolyline(polyline)));
+      console.log("------");
+    }
   }, [location]);
 
   //fetch data from app start
