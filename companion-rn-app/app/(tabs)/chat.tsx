@@ -33,6 +33,8 @@ const ChatPage = () => {
     timestamp: string;
   }
 
+  type PacketContent = string | { [key: string]: string };
+
   interface packetInterface {
     performative: string;
     message_id: string;
@@ -40,7 +42,7 @@ const ChatPage = () => {
     task_id: string | null;
     chat_id: string;
     pending_tool_id: string | null;
-    content: object | string;
+    content: PacketContent;
     sender: string;
     receiver: string;
     polyline?: string;
@@ -103,11 +105,20 @@ const ChatPage = () => {
     console.log("location updated");
     console.log(location?.coords.latitude, location?.coords.longitude);
 
+    // if (currentPolyline === null || currentPolyline === undefined) {
+    //   console.log("error with current polyline");
+    //   console.log(currentPolyline);
+    //   return;
+    // }
+
     const polyline =
-      "yb{yHdjj@Di@T}@FgABa@A?KAIlAKp@GRm@jJIzDLdI?jCLxBPx@P^l@b@`@NJ?hBv@pBpAj@d@`BzBl@l@lAp@h@VJC^XZBl@T^GzDgEdDiEvAaBGS@BbC{Cs@kCBFdCiDtDeGvB}DlDmHxCmHrAoDhCeIjIkXxPsf@h@cBb@sBb@_DTuCDuCEcDOsC_A{IMgCCsCDsCNuB\\sC`@uBlCsJh@oCZ{BhBgRj@oFbAeI`@mBTw@l@_BbAiBzAkBp@o@fBkArAi@dBc@xCSvBEvIAvCInD[zA]`Bg@bBaA~CqBbCgBpD_DjHaHhGaH`FeHzDgHzCeH`CeHnBaH|A{GhD_PrAaGzAsFhBeFpB{EzBoEbCkEvKwQdCkE`CuExB_FpBgFhBsFbBuFnGqUrA{EbB_FtCoHhAa@hAk@jD}B|I}HpGcGfKoLxQ}Rz@_A^Or@Ev@P\\X^l@x@bChDbLn@rBp@~B^v@\\`@dAl@|@Rz@BdAQdBw@`CwAdBoAlFyEvJcJjMwM`FyEv@m@d@S`Dk@|DeAbEoA|FeCfBy@t@KzC?pAAfASx@c@PQj@iAnF{MjFsLX{@ZeBfFm]b@eB\\}@`@o@fAeAhGuEr@c@CUj@aUECKNOc@NSHCl@s@AGHVhCyCNKvGqITW@GhIiKd@mAHLNi@B_@AgBf@gAAKDKACv@}@pJuMvAsBn@g@\\KPXXJd@KRQ\\s@PKvBMvAIb@KXeBJaAFGNy@`@gAZg@dPmJxDsBzFkCtDwA~EoDfBeA~Aa@?QA@\\C?ILA@Fl@Dl@RtDjBE`@^PJvCLtAJd@b@vA";
+      "yb{yHdjj@Di@bCY?UkBNa@Hm@jJIzDLdI?jCLxBPx@P^l@b@`@NJ?hBv@pBpAj@d@`BzBl@l@lAp@h@VJC^Xf@n@hBfDBPnAdCj@nAb@b@l@|Ah@jBdArBxAnCnCbAt@n@z@lA`CtAzDrCdF`AlAdClCbATEn@{Af@d@|AlArD_DxDwCdEsGfKITiAbBgC|CWVKB{EjHYh@ERQXr@bExA~JVbAn@bB~AfD^rAT|AJrBLtKJxIAtAMtBQdBcAzF_@dHMnAMn@LL@AK^VoAPoBDcAtCdBH@GXl@Vn@@zBOx@@~Hb@`IAvEIrI_AzDo@BOH?BJlA?xGlA|M~A|@BlAQnCs@|@?RBFGFF?Hz@bA\n@bDhIJRPn@bARNe@PKTw@bGsPxB{G?WFWnBqFnCcJUUl@cBJCNDdAwCb@g@Z?VPRP@ZSk@r@wBlF{R`AuDsBDw@?IQ_A?Ke@q@oA|@e@v@a@~AKh@zBfA@DVOn@yBJODCBg@?IQ_A?k@BYq@|@oAb@u@FWx@oADArAqCjGgN^e@p@g@d@KxBSnDyApCk@jAk@j@m@pAqBz@y@fDoBX_@f@eArCgElDuEQRCRo@zBiGfAuD`@kBRmBAGj@mIbAuRA{AYcF}A_T?aANmBlBcLLyABkB?uBPmGj@eHh@qEf@cD|@kDv@_CjCkJlB{HLoBN_AdAoCLc@X}APe@vC_FdC}ErC_Gn@iBbAoDJwABiBEu@WkCIsAI{C[{DuB{Gg@gCxI{KL[dAkAJ?vLuNFY|@kAJArCmDh@s@RM|@yAr@gBVs@?Qb@mAHKLAjAeBFOROlCaDL_@f@m@H@tWy[~B_D|ByDxByCtJyLlBsBpAiBDSj@{@NKnCeFpIcNxCkFvAwB@MnCwDjD_GhE}GTe@nCkEpFcJpFcJ~GcMn@uAD_@SgDCKCY@[OuCBW_@wGm@_P{@uOU{FgBiZiAqOEWc@eHQ}BwAm[]qH{@{SAaBG}A?_@KmA]oEYmDMDLEq@oIQgCaE_M]mAKSeCqHSa@LOfC_Ap@KfDoA`GqD|LuHfAi@Tk@PhAf@vAp@hAv@|@fAd@fAPP[ZBVFHlGyEzCgCtCaCnRmPV]DML_AP]FGNC`@BJQVIJQDQFGXmAy@|DaF|DoENKvGqITW@GhIiKl@aBD}@KqAGU@YLMNF@BxBoCxIuLvAsBn@g@KPXXJd@KRQs@PKvBMvAIb@KXeBLcADENy@`@gAZg@dPmJxDsBzFkCtDwA~EoDfBeA~Aa@?QA@C?ILA@Fl@Dl@RtDjBE`@^PJvCLtAJd@b@vA";
+
     const decodePolyline = require("decode-google-map-polyline");
 
     const decodedPolyline = decodePolyline(polyline);
+
+    // console.log(decodedPolyline);
 
     //save the current polyline
     setCurrentPolyline(decodedPolyline);
@@ -125,7 +136,7 @@ const ChatPage = () => {
 
       const packet = {
         performative: "INFORM",
-        message_id: uuidv4(),
+        message_id: "44b7bcf4-8e94-46e9-88ac-940692bdc0cd",
         user_id: "5616b7de-165c-44a9-88a7-e2b5d2e4523c",
         task_id: taskId,
         chat_id: "f4f1cb57-c89e-4327-9a80-868c03ec7344",
@@ -141,7 +152,7 @@ const ChatPage = () => {
         receiver: "ORCHESTRATOR_AGENT",
       };
 
-      sendPacket(packet);
+      // sendPacket(packet);
     }
   }, [location]);
 
@@ -210,12 +221,19 @@ const ChatPage = () => {
       };
 
       setMessages((prev) => (prev ? [...prev, modelMesage] : [modelMesage]));
+      const messages = await getChatMessages();
+      setMessages(messages);
     }
     const messages = await getChatMessages();
     setMessages(messages);
 
     setLoadingMessage(false);
   };
+
+  // useEffect(() => {
+  //   console.log("current polyline");
+  //   console.log(currentPolyline);
+  // }, [currentPolyline]);
 
   const sendPacket = (packet: packetInterface) => {
     if (ws) ws.send(JSON.stringify(packet));
