@@ -17,7 +17,6 @@ export const useLocationTracker = () => {
         console.log("Permission to access location was denied");
         return;
       }
-      setLocation(location);
     }
 
     getBackgroundLocationPermisions();
