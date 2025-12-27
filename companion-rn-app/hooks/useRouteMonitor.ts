@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import * as Location from "expo-location";
-import decodePolyline from "decode-google-map-polyline";
 import { DecodedPoint, decodedPolyline } from "@/utils/types";
 import { isUserOnTrack } from "@/utils/locationUtils";
 
@@ -15,6 +14,7 @@ export const useRouteMonitor = (
 
   //decode and set polyline, reset state and ref
   const setPolylineFunction = (polyline: string) => {
+    const decodePolyline = require("decode-google-map-polyline");
     const decodedPolyline = decodePolyline(polyline);
     setPolyline(decodedPolyline);
     setIsDerailed(false);
@@ -27,8 +27,13 @@ export const useRouteMonitor = (
 
     const onTrack = isUserOnTrack(location, polyline);
 
+    console.log("--- is user on track? ---");
+    console.log(onTrack);
+    console.log("------");
+
     if (!onTrack) {
       setIsDerailed(true);
+      console.log("USER DERAILED, ASKING FOR NEW DIRECTIONS");
       derailTriggeredRef.current = true;
       onDerail(polyline);
     }
