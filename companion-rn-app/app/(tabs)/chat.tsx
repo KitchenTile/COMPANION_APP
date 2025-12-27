@@ -10,9 +10,18 @@ import React, { useEffect, useRef, useState } from "react";
 import { getChatMessages, sendChatMessage } from "@/api/fetchAPI";
 import { ScrollView } from "react-native";
 import TypingIndicator from "@/components/ui/TypingBubbleDots";
-import * as Location from "expo-location";
 import { isUserOnTrack } from "@/utils/locationUtils";
+import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
+import {
+  DecodedPoint,
+  decodedPolyline,
+  messageInterface,
+  packetInterface,
+} from "@/utils/types";
+import { useLocationTracker } from "@/hooks/useLocationTracker";
+import { useChatWebsocket } from "@/hooks/useChatWebSocket";
+import { useRouteMonitor } from "@/hooks/useRouteMonitor";
 
 const ChatPage = () => {
   const [userInput, setUserInput] = useState<string>("");
@@ -21,140 +30,9 @@ const ChatPage = () => {
   const [pendingToolId, setPendingToolId] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState<boolean>(false);
   const scrollViewRef = useRef<ScrollView>(null);
-  const [location, setLocation] = useState<Location.LocationObject | null>(
-    null
-  );
-  const [ws, setWs] = useState<WebSocket | null>(null);
-  const [currentPolyline, setCurrentPolyline] = useState<string | null>(null);
 
-  interface messageInterface {
-    content: object | string;
-    role: string;
-    timestamp: string;
-  }
-
-  type PacketContent = string | { [key: string]: string };
-
-  interface packetInterface {
-    performative: string;
-    message_id: string;
-    user_id: string;
-    task_id: string | null;
-    chat_id: string;
-    pending_tool_id: string | null;
-    content: PacketContent;
-    sender: string;
-    receiver: string;
-    polyline?: string;
-  }
-
-  // location effect
-  useEffect(() => {
-    let subscription: Location.LocationSubscription | null = null;
-
-    async function getBackgroundLocationPermisions() {
-      let { status } = await Location.requestBackgroundPermissionsAsync();
-      if (status !== "granted") {
-        console.log("Permission to access location was denied");
-        return;
-      }
-      setLocation(location);
-    }
-
-    getBackgroundLocationPermisions();
-
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-
-      if (status !== "granted") {
-        console.log("Permission denied");
-        return;
-      }
-
-      // Initial position
-      const initialLocation = await Location.getCurrentPositionAsync({});
-      setLocation(initialLocation);
-
-      console.log(
-        "initial location:",
-        initialLocation.coords.latitude,
-        initialLocation.coords.longitude
-      );
-
-      // Start watching
-      subscription = await Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.High,
-          timeInterval: 1000,
-          distanceInterval: 1,
-        },
-        (loc) => {
-          console.log("update:", loc.coords.latitude, loc.coords.longitude);
-          setLocation(loc);
-        }
-      );
-    })();
-
-    return () => {
-      subscription?.remove();
-    };
-  }, []);
-
-  // check for location changes
-  useEffect(() => {
-    console.log("location updated");
-    console.log(location?.coords.latitude, location?.coords.longitude);
-
-    // if (currentPolyline === null || currentPolyline === undefined) {
-    //   console.log("error with current polyline");
-    //   console.log(currentPolyline);
-    //   return;
-    // }
-
-    const polyline =
-      "yb{yHdjj@Di@bCY?UkBNa@Hm@jJIzDLdI?jCLxBPx@P^l@b@`@NJ?hBv@pBpAj@d@`BzBl@l@lAp@h@VJC^Xf@n@hBfDBPnAdCj@nAb@b@l@|Ah@jBdArBxAnCnCbAt@n@z@lA`CtAzDrCdF`AlAdClCbATEn@{Af@d@|AlArD_DxDwCdEsGfKITiAbBgC|CWVKB{EjHYh@ERQXr@bExA~JVbAn@bB~AfD^rAT|AJrBLtKJxIAtAMtBQdBcAzF_@dHMnAMn@LL@AK^VoAPoBDcAtCdBH@GXl@Vn@@zBOx@@~Hb@`IAvEIrI_AzDo@BOH?BJlA?xGlA|M~A|@BlAQnCs@|@?RBFGFF?Hz@bA\n@bDhIJRPn@bARNe@PKTw@bGsPxB{G?WFWnBqFnCcJUUl@cBJCNDdAwCb@g@Z?VPRP@ZSk@r@wBlF{R`AuDsBDw@?IQ_A?Ke@q@oA|@e@v@a@~AKh@zBfA@DVOn@yBJODCBg@?IQ_A?k@BYq@|@oAb@u@FWx@oADArAqCjGgN^e@p@g@d@KxBSnDyApCk@jAk@j@m@pAqBz@y@fDoBX_@f@eArCgElDuEQRCRo@zBiGfAuD`@kBRmBAGj@mIbAuRA{AYcF}A_T?aANmBlBcLLyABkB?uBPmGj@eHh@qEf@cD|@kDv@_CjCkJlB{HLoBN_AdAoCLc@X}APe@vC_FdC}ErC_Gn@iBbAoDJwABiBEu@WkCIsAI{C[{DuB{Gg@gCxI{KL[dAkAJ?vLuNFY|@kAJArCmDh@s@RM|@yAr@gBVs@?Qb@mAHKLAjAeBFOROlCaDL_@f@m@H@tWy[~B_D|ByDxByCtJyLlBsBpAiBDSj@{@NKnCeFpIcNxCkFvAwB@MnCwDjD_GhE}GTe@nCkEpFcJpFcJ~GcMn@uAD_@SgDCKCY@[OuCBW_@wGm@_P{@uOU{FgBiZiAqOEWc@eHQ}BwAm[]qH{@{SAaBG}A?_@KmA]oEYmDMDLEq@oIQgCaE_M]mAKSeCqHSa@LOfC_Ap@KfDoA`GqD|LuHfAi@Tk@PhAf@vAp@hAv@|@fAd@fAPP[ZBVFHlGyEzCgCtCaCnRmPV]DML_AP]FGNC`@BJQVIJQDQFGXmAy@|DaF|DoENKvGqITW@GhIiKl@aBD}@KqAGU@YLMNF@BxBoCxIuLvAsBn@g@KPXXJd@KRQs@PKvBMvAIb@KXeBLcADENy@`@gAZg@dPmJxDsBzFkCtDwA~EoDfBeA~Aa@?QA@C?ILA@Fl@Dl@RtDjBE`@^PJvCLtAJd@b@vA";
-
-    const decodePolyline = require("decode-google-map-polyline");
-
-    const decodedPolyline = decodePolyline(polyline);
-
-    // console.log(decodedPolyline);
-
-    //save the current polyline
-    setCurrentPolyline(decodedPolyline);
-
-    //if we have location
-    if (location?.coords.latitude !== undefined) {
-      // check if user's on track
-      const userOnTrack = isUserOnTrack(location, decodedPolyline);
-
-      console.log("--- is user on track? ---");
-      console.log(userOnTrack);
-      console.log("------");
-
-      if (!currentPolyline) return;
-
-      const packet = {
-        performative: "INFORM",
-        message_id: "44b7bcf4-8e94-46e9-88ac-940692bdc0cd",
-        user_id: "5616b7de-165c-44a9-88a7-e2b5d2e4523c",
-        task_id: taskId,
-        chat_id: "f4f1cb57-c89e-4327-9a80-868c03ec7344",
-        pending_tool_id: pendingToolId,
-        content: {
-          message: `I am currently at ${location.coords.latitude}, ${
-            location.coords.longitude
-          }. I have deviated from the route. Please calculate a new route to the following destination ${
-            currentPolyline[currentPolyline.length - 1]
-          }.`,
-        },
-        sender: "USER",
-        receiver: "ORCHESTRATOR_AGENT",
-      };
-
-      // sendPacket(packet);
-    }
-  }, [location]);
+  //location manager hook
+  const location = useLocationTracker();
 
   //fetch data from app start
   useEffect(() => {
@@ -170,34 +48,6 @@ const ChatPage = () => {
     fetchData();
   }, []);
 
-  // connect to chatId's websocket
-  useEffect(() => {
-    const ws = new WebSocket(
-      `ws://localhost:8000/ws/f4f1cb57-c89e-4327-9a80-868c03ec7344`
-    );
-
-    ws.onopen = () => {
-      console.log("Connected!");
-      setWs(ws);
-    };
-    ws.onerror = (e) => {
-      console.log("WebSocket Error:", e);
-    };
-
-    ws.onclose = (e) => {
-      console.log("WebSocket Closed:", e.code, e.reason);
-    };
-
-    ws.onmessage = (event) => {
-      const packet = JSON.parse(event.data);
-      handleIncomingPacket(packet);
-      console.log("packet");
-      console.log(packet);
-    };
-
-    return () => ws.close();
-  }, []);
-
   // handle info from websocket
   const handleIncomingPacket = async (packet: packetInterface) => {
     if (packet.performative === "REQUEST") {
@@ -210,7 +60,7 @@ const ChatPage = () => {
       setTaskId(null);
 
       if (packet.polyline) {
-        setCurrentPolyline(packet.polyline);
+        setPolylineFunction(packet.polyline);
       }
 
       //and add bot message to ui before fetching
@@ -230,14 +80,38 @@ const ChatPage = () => {
     setLoadingMessage(false);
   };
 
-  // useEffect(() => {
-  //   console.log("current polyline");
-  //   console.log(currentPolyline);
-  // }, [currentPolyline]);
+  // websocket hook to handle state and
+  const sendPacket = useChatWebsocket(
+    "f4f1cb57-c89e-4327-9a80-868c03ec7344",
+    handleIncomingPacket
+  );
 
-  const sendPacket = (packet: packetInterface) => {
-    if (ws) ws.send(JSON.stringify(packet));
+  const handleDerail = (polyline: DecodedPoint[]) => {
+    const destination = polyline[polyline.length - 1];
+
+    if (isDerailed) {
+    }
+
+    sendPacket({
+      performative: "INFORM",
+      message_id: "44b7bcf4-8e94-46e9-88ac-940692bdc0cd",
+      user_id: "5616b7de-165c-44a9-88a7-e2b5d2e4523c",
+      task_id: taskId ?? uuidv4(),
+      chat_id: "f4f1cb57-c89e-4327-9a80-868c03ec7344",
+      pending_tool_id: pendingToolId,
+      sender: "USER",
+      receiver: "ORCHESTRATOR_AGENT",
+      content: {
+        message: `I am currently at ${location?.coords.latitude}, ${location?.coords.longitude}. I have deviated from the route. Please calculate a new route to the following destination ${destination.lat}, ${destination.lng} by bus and subway.`,
+      },
+    });
   };
+
+  // hook handles polyline state
+  const { isDerailed, setPolylineFunction } = useRouteMonitor(
+    location,
+    handleDerail
+  );
 
   //send HTTP request to backend with user message
   const sendMessage = async () => {
