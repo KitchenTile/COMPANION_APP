@@ -1,15 +1,16 @@
 {
   "expo": {
-    "name": "mdx-su-rn-app",
-    "slug": "mdx-su-rn-app",
+    "name": "ai-companion",
+    "slug": "ai-companion",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/MDXSU_Logo_Black_Small.png",
-    "scheme": "mdxsurnapp",
+    "scheme": "aicompanion",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.blue.aicompanion"
     },
     "android": {
       "adaptiveIcon": {
