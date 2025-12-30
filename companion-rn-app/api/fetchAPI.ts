@@ -8,9 +8,9 @@ interface userMessage {
   pending_tool_id: string | null;
 }
 
-export const getPythonBackend = async () => {
+export const getGmailLogin = async () => {
   try {
-    const res = await fetch("http://localhost:8000/");
+    const res = await fetch("http://localhost:8000/gmailLogin");
 
     if (!res.ok) {
       console.log("Error fetching data");
