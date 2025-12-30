@@ -23,7 +23,7 @@ export const useRouteMonitor = (
   };
 
   useEffect(() => {
-    if (!location || !polyline || !derailTriggeredRef.current) return;
+    if (!location || !polyline || derailTriggeredRef.current) return;
 
     const onTrack = isUserOnTrack(location, polyline);
 
