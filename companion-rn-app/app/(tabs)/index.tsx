@@ -1,5 +1,11 @@
 import { Image } from "expo-image";
-import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  Platform,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import * as Linking from "expo-linking";
 
 import { HelloWave } from "@/components/HelloWave";
@@ -9,43 +15,34 @@ import { ThemedView } from "@/components/ThemedView";
 import { useEffect, useState } from "react";
 import React from "react";
 import * as WebBrowser from "expo-web-browser";
-import { getGmailLogin } from "@/api/fetchAPI";
+import { useAuthStore } from "@/store/store";
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function HomeScreen() {
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    // const fetchStuff = async () => {
-    //   try {
-    //     const response = await fetch("http://localhost:8000/api/posts/", {
-    //       method: "GET",
-    //       headers: {
-    //         // Authorization: `Bearer ${token}`,
-    //         "Content-Type": "application/json",
-    //       },
-    //     });
-    //     if (!response.ok) {
-    //       throw new Error("Failed to fetch channels :(");
-    //     }
-    //     const data = await response.json();
-    //     console.log(data);
-    //   } catch (error) {
-    //     console.log(error);
-    //   }
-    // };
-    // fetchStuff();
-  });
+  const login = useAuthStore((state) => state.login);
+  const logout = useAuthStore((store) => store.logout);
+  const signUp = useAuthStore((state) => state.signUp);
+  const user = useAuthStore((state) => state.user);
+  const [loginState, setLoginState] = useState(true);
+  const [name, setName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
 
   const openGoogleLink = async () => {
-    // Linking.openURL("http://localhost:8000/gmailLogin");
+    // if there's no user id, retrurn
+    if (!user?.id) return;
     await WebBrowser.openAuthSessionAsync(
-      "http://localhost:8000/gmailLogin",
+      `http://localhost:8000/gmailLogin?userid_id=${user.id}`,
       "aicompanion://auth"
     );
-    setReady(true);
   };
+
+  useEffect(() => {
+    if (!user) return;
+    console.log("user id");
+    console.log(user.id);
+  }, [user]);
 
   useEffect(() => {
     const sub = Linking.addEventListener("url", ({ url }) => {
@@ -61,6 +58,21 @@ export default function HomeScreen() {
     return () => sub.remove();
   }, []);
 
+  const singUpFunction = async () => {
+    // if the input fields are empty, return
+    if (email === "" || password === "" || name === "") return;
+    // sign up and log in
+    await signUp(email, password, name);
+    await login(email, password);
+  };
+
+  const logInFunction = async () => {
+    // if the input fields are empty, return
+    if (email === "" || password === "") return;
+    //log in
+    await login(email, password);
+  };
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
@@ -71,20 +83,87 @@ export default function HomeScreen() {
         />
       }
     >
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
+      {user ? (
+        <ThemedView>
+          <ThemedView style={styles.titleContainer}>
+            <ThemedText type="title">
+              Welcome, {user.user_metadata.full_name}
+            </ThemedText>
+            <HelloWave />
+          </ThemedView>
+          <ThemedView>
+            <TouchableOpacity style={styles.loginSignupButton} onPress={logout}>
+              <ThemedText
+                style={{ color: "white", textAlign: "center", fontSize: 20 }}
+              >
+                Log Out
+              </ThemedText>
+            </TouchableOpacity>
+          </ThemedView>
+        </ThemedView>
+      ) : (
+        <View>
+          <ThemedView style={styles.titleContainer}>
+            <ThemedText type="title">
+              {loginState ? "Log In" : "Sign Up"}
+            </ThemedText>
+            <TouchableOpacity onPress={() => setLoginState(!loginState)}>
+              <ThemedText>{loginState ? "Or sign up" : "Or log in"}</ThemedText>
+            </TouchableOpacity>
+          </ThemedView>
+          <ThemedView>
+            {!loginState && (
+              <TextInput
+                value={name}
+                placeholder="Full Name"
+                placeholderTextColor="#000000ff"
+                autoCapitalize="none"
+                onChangeText={setName}
+                style={styles.input}
+              />
+            )}
+            <View>
+              <TextInput
+                value={email}
+                placeholder="Email"
+                keyboardType="email-address"
+                placeholderTextColor="#000000ff"
+                autoCapitalize="none"
+                autoCorrect={false}
+                onChangeText={setEmail}
+                style={styles.input}
+              />{" "}
+              <TextInput
+                value={password}
+                placeholder="Password"
+                secureTextEntry
+                placeholderTextColor="#000000ff"
+                autoCapitalize="none"
+                onChangeText={setPassword}
+                style={styles.input}
+              />{" "}
+            </View>
+            <TouchableOpacity
+              style={styles.loginSignupButton}
+              onPress={loginState ? logInFunction : singUpFunction}
+            >
+              <ThemedText
+                style={{ color: "white", textAlign: "center", fontSize: 20 }}
+              >
+                {loginState ? "Log In" : "Sign Up"}
+              </ThemedText>
+            </TouchableOpacity>
+          </ThemedView>
+        </View>
+      )}
 
-      <ThemedView>
-        <TouchableOpacity style={styles.gmailButton} onPress={openGoogleLink}>
-          <ThemedText
-            style={{ color: "white", textAlign: "center", fontSize: 20 }}
-          >
-            Link Gmail
-          </ThemedText>
-        </TouchableOpacity>
-      </ThemedView>
+      <TouchableOpacity style={styles.gmailButton} onPress={openGoogleLink}>
+        <ThemedText
+          style={{ color: "white", textAlign: "center", fontSize: 20 }}
+        >
+          Link Gmail
+        </ThemedText>
+      </TouchableOpacity>
     </ParallaxScrollView>
   );
 }
@@ -94,6 +173,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    marginBottom: 10,
   },
   stepContainer: {
     gap: 8,
@@ -113,5 +193,26 @@ const styles = StyleSheet.create({
     borderColor: "rgba(193, 49, 36, 1)",
     borderStyle: "solid",
     borderWidth: 1,
+  },
+
+  loginSignupButton: {
+    padding: 10,
+    backgroundColor: "#DE5246",
+    borderRadius: 20,
+    borderColor: "rgba(193, 49, 36, 1)",
+    borderStyle: "solid",
+    borderWidth: 1,
+    margin: 3,
+  },
+
+  input: {
+    backgroundColor: "#ffffffff",
+    color: "#1E293B",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 10,
+    borderColor: "#1E293B",
+    borderStyle: "solid",
+    borderWidth: 2,
   },
 });
