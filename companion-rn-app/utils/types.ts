@@ -1,6 +1,21 @@
+import { Session, User } from "@supabase/supabase-js";
+
 export interface decodedPolyline {
   lat: string;
   lng: string;
+}
+
+export interface AuthStore {
+  isLoggedIn: boolean;
+  isLoading: boolean;
+  user: User | null;
+  session: Session | null;
+  error: any;
+
+  login: (email: string, password: string) => Promise<void>;
+  signUp: (name: string, email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  initialize: () => Promise<() => void>;
 }
 
 export type decodedPolyline2 = { [key: string]: number };
