@@ -33,11 +33,11 @@ export const useLocationTracker = () => {
       const initialLocation = await Location.getCurrentPositionAsync({});
       setLocation(initialLocation);
 
-      console.log(
-        "initial location:",
-        initialLocation.coords.latitude,
-        initialLocation.coords.longitude
-      );
+      //   console.log(
+      //     "initial location:",
+      //     initialLocation.coords.latitude,
+      //     initialLocation.coords.longitude
+      //   );
 
       // Start watching
       subscription = await Location.watchPositionAsync(
