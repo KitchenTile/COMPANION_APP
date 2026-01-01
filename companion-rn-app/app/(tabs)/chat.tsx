@@ -6,26 +6,33 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import React, { useEffect, useRef, useState } from "react";
-import { getChatMessages, sendChatMessage } from "@/api/fetchAPI";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { fetchChat, getChatMessages, sendChatMessage } from "@/api/fetchAPI";
 import { ScrollView } from "react-native";
 import TypingIndicator from "@/components/ui/TypingBubbleDots";
-import { isUserOnTrack } from "@/utils/locationUtils";
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
 import {
+  Chat,
   DecodedPoint,
-  decodedPolyline,
   messageInterface,
   packetInterface,
 } from "@/utils/types";
 import { useLocationTracker } from "@/hooks/useLocationTracker";
 import { useChatWebsocket } from "@/hooks/useChatWebSocket";
 import { useRouteMonitor } from "@/hooks/useRouteMonitor";
+import { useAuthStore } from "@/store/store";
+import { PostgrestError } from "@supabase/supabase-js";
 
 const ChatPage = () => {
+  // user from store
+  const user = useAuthStore((state) => state.user);
+
+  const [messages, setMessages] = useState<messageInterface[]>([]);
+  const [chats, setChats] = useState<Chat[] | null>(null);
+  const [chatId, setChatId] = useState<string | null>(null);
+
   const [userInput, setUserInput] = useState<string>("");
-  const [messages, setMessages] = useState<messageInterface[]>();
   const [taskId, setTaskId] = useState<string | null>(null);
   const [pendingToolId, setPendingToolId] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState<boolean>(false);
@@ -34,11 +41,36 @@ const ChatPage = () => {
   //location manager hook
   const location = useLocationTracker();
 
-  //fetch data from app start
+  useEffect(() => {
+    if (!user) return;
+
+    //fetch chats
+    const fetchUserChats = async (userId: string) => {
+      const chats: Chat[] | undefined | PostgrestError = await fetchChat(
+        user.id
+      );
+
+      if (!Array.isArray(chats) || chats.length === 0) return;
+
+      // if chats is a array set state
+      setChats(chats);
+      setChatId(chats[0].chat_id);
+      console.log(userId, chatId);
+      console.log(chatId);
+      console.log(userId);
+    };
+
+    fetchUserChats(user.id);
+  }, [user]);
+
+  //fetch data when chat id changes
   useEffect(() => {
     async function fetchData() {
       try {
-        const messages = await getChatMessages();
+        if (!chatId || !user) return;
+        const messages = await getChatMessages(user.id, chatId);
+
+        //set messages to display
         setMessages(messages);
       } catch (err) {
         console.error("Failed to fetch backend message:", err);
@@ -46,10 +78,11 @@ const ChatPage = () => {
     }
 
     fetchData();
-  }, []);
+  }, [chatId, user]);
 
   // handle info from websocket
   const handleIncomingPacket = async (packet: packetInterface) => {
+    if (!user || !chatId) return;
     if (packet.performative === "REQUEST") {
       setPendingToolId(packet.pending_tool_id);
       setTaskId(packet.task_id);
@@ -71,40 +104,43 @@ const ChatPage = () => {
       };
 
       setMessages((prev) => (prev ? [...prev, modelMesage] : [modelMesage]));
-      const messages = await getChatMessages();
-      setMessages(messages);
     }
-    const messages = await getChatMessages();
+    const messages = await getChatMessages(user.id, chatId);
     setMessages(messages);
 
     setLoadingMessage(false);
   };
 
   // websocket hook to handle state and
-  const sendPacket = useChatWebsocket(
-    "f4f1cb57-c89e-4327-9a80-868c03ec7344",
-    handleIncomingPacket
-  );
+  const sendPacket = useChatWebsocket(chatId, handleIncomingPacket);
 
   const handleDerail = (polyline: DecodedPoint[]) => {
     const destination = polyline[polyline.length - 1];
 
-    if (isDerailed) {
-    }
+    console.log("handle derail");
 
-    sendPacket({
-      performative: "INFORM",
-      message_id: "44b7bcf4-8e94-46e9-88ac-940692bdc0cd",
-      user_id: "5616b7de-165c-44a9-88a7-e2b5d2e4523c",
-      task_id: taskId ?? uuidv4(),
-      chat_id: "f4f1cb57-c89e-4327-9a80-868c03ec7344",
-      pending_tool_id: pendingToolId,
-      sender: "USER",
-      receiver: "ORCHESTRATOR_AGENT",
-      content: {
-        message: `I am currently at ${location?.coords.latitude}, ${location?.coords.longitude}. I have deviated from the route. Please calculate a new route to the following destination ${destination.lat}, ${destination.lng} by bus and subway.`,
-      },
-    });
+    if (user) {
+      console.log("sending [acket]");
+
+      const newPacket = {
+        performative: "INFORM",
+        message_id: uuidv4(),
+        user_id: user.id,
+        task_id: taskId ?? uuidv4(),
+        chat_id: chatId ? chatId : uuidv4(),
+        pending_tool_id: pendingToolId,
+        sender: "USER",
+        receiver: "ORCHESTRATOR_AGENT",
+        content: {
+          message: `I am currently at ${location?.coords.latitude}, ${location?.coords.longitude}. I have deviated from the route. Please calculate a new route to the following destination ${destination.lat}, ${destination.lng} by bus and subway.`,
+          lost_coords: `${location?.coords.latitude}, ${location?.coords.longitude}`,
+          destination: `$${destination.lat}, ${destination.lng}`,
+        },
+      };
+
+      console.log(newPacket);
+      sendPacket(newPacket);
+    }
   };
 
   // hook handles polyline state
@@ -116,7 +152,8 @@ const ChatPage = () => {
   //send HTTP request to backend with user message
   const sendMessage = async () => {
     try {
-      if (userInput === "") return;
+      if (userInput === "" || !user || !chatId) return;
+
       const message = userInput;
 
       // add placeholder message to the chat
@@ -137,8 +174,8 @@ const ChatPage = () => {
 
       //send message to backend
       const res = await sendChatMessage({
-        chat_id: "f4f1cb57-c89e-4327-9a80-868c03ec7344",
-        user_id: "5616b7de-165c-44a9-88a7-e2b5d2e4523c",
+        chat_id: chats ? chats[0].chat_id : uuidv4(),
+        user_id: user.id,
         message: message,
         task_id: taskId,
         pending_tool_id: pendingToolId,
@@ -168,9 +205,6 @@ const ChatPage = () => {
         setLoadingMessage(false);
       }
 
-      //refetch the chat data
-      const messages = await getChatMessages();
-      setMessages(messages);
       return;
     } catch (error) {
       console.log("error sending message: " + error);
