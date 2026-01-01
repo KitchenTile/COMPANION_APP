@@ -16,14 +16,20 @@ import { useEffect, useState } from "react";
 import React from "react";
 import * as WebBrowser from "expo-web-browser";
 import { useAuthStore } from "@/store/store";
+import { fetchChat } from "@/api/fetchAPI";
+import { PostgrestError } from "@supabase/supabase-js";
+import { Chat } from "@/utils/types";
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function HomeScreen() {
+  // imports from store
   const login = useAuthStore((state) => state.login);
   const logout = useAuthStore((store) => store.logout);
   const signUp = useAuthStore((state) => state.signUp);
   const user = useAuthStore((state) => state.user);
+
+  // auth state
   const [loginState, setLoginState] = useState(true);
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
@@ -33,7 +39,7 @@ export default function HomeScreen() {
     // if there's no user id, retrurn
     if (!user?.id) return;
     await WebBrowser.openAuthSessionAsync(
-      `http://localhost:8000/gmailLogin?userid_id=${user.id}`,
+      `http://localhost:8000/gmailLogin?user_id=${user.id}`,
       "aicompanion://auth"
     );
   };
@@ -132,7 +138,7 @@ export default function HomeScreen() {
                 autoCorrect={false}
                 onChangeText={setEmail}
                 style={styles.input}
-              />{" "}
+              />
               <TextInput
                 value={password}
                 placeholder="Password"
@@ -141,7 +147,7 @@ export default function HomeScreen() {
                 autoCapitalize="none"
                 onChangeText={setPassword}
                 style={styles.input}
-              />{" "}
+              />
             </View>
             <TouchableOpacity
               style={styles.loginSignupButton}
