@@ -5,6 +5,19 @@ export interface decodedPolyline {
   lng: string;
 }
 
+export interface ChatMessage {
+  role: "user" | "assistant" | "system";
+  content: string;
+  created_at?: string;
+}
+
+export interface Chat {
+  chat_id: string;
+  user_id: string;
+  messages: ChatMessage[];
+  created_at: string;
+}
+
 export interface AuthStore {
   isLoggedIn: boolean;
   isLoading: boolean;
