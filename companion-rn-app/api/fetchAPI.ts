@@ -1,3 +1,4 @@
+import { supabase } from "@/supabase/supabase";
 import { baseURL } from "@/utils/api";
 
 interface userMessage {
@@ -24,11 +25,9 @@ export const getGmailLogin = async () => {
   }
 };
 
-export const getChatMessages = async () => {
+export const getChatMessages = async (chatId: string, userId: string) => {
   try {
-    const res = await fetch(
-      "http://localhost:8000/chat/5616b7de-165c-44a9-88a7-e2b5d2e4523c/f4f1cb57-c89e-4327-9a80-868c03ec7344"
-    );
+    const res = await fetch(`http://localhost:8000/chat/${chatId}/${userId}`);
 
     if (!res.ok) {
       console.log("Error fetching data");
@@ -63,4 +62,16 @@ export const sendChatMessage = async (userQuery: userMessage) => {
   } catch (error) {
     console.error("Failed to send new message: " + error);
   }
+};
+
+export const fetchChat = async (userId: string) => {
+  if (!userId) return;
+  const { data, error } = await supabase
+    .from("chats")
+    .select("*")
+    .eq("user_id", userId);
+
+  if (error) return error;
+
+  return data;
 };
