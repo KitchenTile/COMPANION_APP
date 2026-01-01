@@ -1,20 +1,27 @@
 import { packetInterface } from "@/utils/types";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export const useChatWebsocket = (
-  chatId: string,
+  chatId: string | null,
   onPacket: (packet: packetInterface) => void
 ) => {
-  const [ws, setWs] = useState<WebSocket | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const onPacketRef = useRef(onPacket);
+
+  useEffect(() => {
+    onPacketRef.current = onPacket;
+  }, [onPacket]);
 
   // connect to chatId's websocket
   useEffect(() => {
+    if (!chatId) return;
     const ws = new WebSocket(`ws://localhost:8000/ws/${chatId}`);
+    wsRef.current = ws;
 
     ws.onopen = () => {
-      console.log("Connected!");
-      setWs(ws);
+      console.log("WebSocket connected:", chatId);
     };
+
     ws.onerror = (e) => {
       console.log("WebSocket Error:", e);
     };
@@ -28,13 +35,23 @@ export const useChatWebsocket = (
       onPacket(packet);
     };
 
-    return () => ws.close();
-  }, []);
+    return () => {
+      ws.close();
+      wsRef.current = null;
+    };
+  }, [chatId]);
 
-  //send new packet to chat_id
-  const sendPacket = (packet: packetInterface) => {
-    if (ws) ws.send(JSON.stringify(packet));
-  };
+  //send new packet to chat_id or return if ws not ready
+  const sendPacket = useCallback((packet: packetInterface) => {
+    const ws = wsRef.current;
+
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      console.warn("WebSocket not ready, packet dropped");
+      return;
+    }
+
+    ws.send(JSON.stringify(packet));
+  }, []);
 
   return sendPacket;
 };
