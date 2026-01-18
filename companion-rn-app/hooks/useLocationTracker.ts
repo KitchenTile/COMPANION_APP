@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import * as Location from "expo-location";
+import { Alert } from "react-native";
 
 export const useLocationTracker = () => {
   const [location, setLocation] = useState<Location.LocationObject | null>(
@@ -15,6 +16,7 @@ export const useLocationTracker = () => {
       let { status } = await Location.requestBackgroundPermissionsAsync();
       if (status !== "granted") {
         console.log("Permission to access location was denied");
+        Alert.alert("Permission to access background location was denied");
         return;
       }
     }
@@ -26,6 +28,7 @@ export const useLocationTracker = () => {
 
       if (status !== "granted") {
         console.log("Permission denied");
+        Alert.alert("Permission to access foreground location was denied");
         return;
       }
 
@@ -58,10 +61,10 @@ export const useLocationTracker = () => {
     };
   }, []);
 
-  useEffect(() => {
-    console.log("location updated");
-    console.log(location?.coords.latitude, location?.coords.longitude);
-  });
+  // useEffect(() => {
+  //   console.log("location updated");
+  //   console.log(location?.coords.latitude, location?.coords.longitude);
+  // });
 
   return location;
 };
