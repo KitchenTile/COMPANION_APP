@@ -1,4 +1,5 @@
 import {
+  Alert,
   Dimensions,
   StyleSheet,
   Text,
@@ -23,6 +24,14 @@ import { useChatWebsocket } from "@/hooks/useChatWebSocket";
 import { useRouteMonitor } from "@/hooks/useRouteMonitor";
 import { useAuthStore } from "@/store/store";
 import { PostgrestError } from "@supabase/supabase-js";
+import { FontAwesome6 } from "@expo/vector-icons";
+import {
+  useAudioRecorder,
+  AudioModule,
+  RecordingPresets,
+  setAudioModeAsync,
+  useAudioRecorderState,
+} from "expo-audio";
 
 const ChatPage = () => {
   // user from store
@@ -37,6 +46,9 @@ const ChatPage = () => {
   const [pendingToolId, setPendingToolId] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState<boolean>(false);
   const scrollViewRef = useRef<ScrollView>(null);
+
+  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const recorderState = useAudioRecorderState(audioRecorder);
 
   //location manager hook
   const location = useLocationTracker();
@@ -79,6 +91,39 @@ const ChatPage = () => {
 
     fetchData();
   }, [chatId, user]);
+
+  useEffect(() => {
+    (async () => {
+      const status = await AudioModule.requestRecordingPermissionsAsync();
+      if (!status.granted) {
+        Alert.alert("Permission to access microphone was denied");
+      }
+
+      setAudioModeAsync({
+        playsInSilentMode: true,
+        allowsRecording: true,
+      });
+    })();
+  }, []);
+
+  useEffect(() => {
+    console.log("Recording state changed:", recorderState.isRecording);
+  }, [recorderState.isRecording]);
+
+  // record audio function
+  const record = async () => {
+    try {
+      await audioRecorder.prepareToRecordAsync();
+      audioRecorder.record();
+    } catch (e) {
+      console.error("Failed to start recording", e);
+    }
+  };
+
+  // stop recording audio function
+  const stopRecording = async () => {
+    await audioRecorder.stop();
+  };
 
   // handle info from websocket
   const handleIncomingPacket = async (packet: packetInterface) => {
@@ -252,11 +297,24 @@ const ChatPage = () => {
           style={styles.input}
           onChangeText={setUserInput}
           value={userInput}
-          placeholder="Talk to me"
+          placeholder="Record or type.."
         />
-        <TouchableOpacity onPress={sendMessage} style={styles.btn}>
-          <Text style={styles.btnTxt}>→</Text>
-        </TouchableOpacity>
+        {recorderState.isRecording ? (
+          <TouchableOpacity onPress={stopRecording} style={styles.btn}>
+            <FontAwesome6 name="pause" size={20} color="#4d4c4cff" />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            onPress={() => (userInput.length !== 0 ? sendMessage() : record())}
+            style={styles.btn}
+          >
+            {userInput.length !== 0 ? (
+              <Text style={styles.btnTxt}>→</Text>
+            ) : (
+              <FontAwesome6 name="microphone" size={20} color="#4d4c4cff" />
+            )}
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
