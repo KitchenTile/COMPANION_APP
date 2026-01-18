@@ -38,9 +38,15 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow application to use your location.",
+          "locationAlwaysAndWhenInUsePermission": "Allow ${PRODUCT_NAME} to use your location.",
           "isIosBackgroundLocationEnabled": true,
           "isAndroidBackgroundLocationEnabled": true
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone to create voice recordings."
         }
       ]
     ],
