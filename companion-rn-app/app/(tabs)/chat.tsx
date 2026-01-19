@@ -1,6 +1,8 @@
 import {
   Alert,
   Dimensions,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -8,7 +10,12 @@ import {
   View,
 } from "react-native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { fetchChat, getChatMessages, sendChatMessage } from "@/api/fetchAPI";
+import {
+  fetchChat,
+  getChatMessages,
+  sendAudio,
+  sendChatMessage,
+} from "@/api/fetchAPI";
 import { ScrollView } from "react-native";
 import TypingIndicator from "@/components/ui/TypingBubbleDots";
 import "react-native-get-random-values";
@@ -31,6 +38,7 @@ import {
   RecordingPresets,
   setAudioModeAsync,
   useAudioRecorderState,
+  useAudioPlayer,
 } from "expo-audio";
 
 const ChatPage = () => {
@@ -49,6 +57,9 @@ const ChatPage = () => {
 
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const recorderState = useAudioRecorderState(audioRecorder);
+
+  const [audioUri, setAudioUri] = useState<string | null>(null);
+  const player = useAudioPlayer(audioUri);
 
   //location manager hook
   const location = useLocationTracker();
@@ -74,6 +85,12 @@ const ChatPage = () => {
 
     fetchUserChats(user.id);
   }, [user]);
+
+  useEffect(() => {
+    console.log("AUDIO URI CHANGED:");
+    console.log(audioUri);
+    player.play();
+  }, [audioUri]);
 
   //fetch data when chat id changes
   useEffect(() => {
@@ -108,6 +125,7 @@ const ChatPage = () => {
 
   useEffect(() => {
     console.log("Recording state changed:", recorderState.isRecording);
+    recorderState.isRecording === false && console.log(recorderState);
   }, [recorderState.isRecording]);
 
   // record audio function
@@ -123,6 +141,7 @@ const ChatPage = () => {
   // stop recording audio function
   const stopRecording = async () => {
     await audioRecorder.stop();
+    sendMessage("audio");
   };
 
   // handle info from websocket
@@ -131,6 +150,9 @@ const ChatPage = () => {
     if (packet.performative === "REQUEST") {
       setPendingToolId(packet.pending_tool_id);
       setTaskId(packet.task_id);
+      console.log("WE GOT HERE");
+      console.log(packet.content.audio_url);
+      setAudioUri(packet.content.audio_url);
     }
 
     if (packet.performative === "INFORM") {
@@ -144,11 +166,14 @@ const ChatPage = () => {
       //and add bot message to ui before fetching
       const modelMesage = {
         role: "assistant",
-        content: packet.content,
+        content: packet.content.message,
         timestamp: new Date().toISOString(),
       };
 
       setMessages((prev) => (prev ? [...prev, modelMesage] : [modelMesage]));
+      console.log("WE GOT HERE, to inform");
+
+      setAudioUri(packet.content.audio_url);
     }
     const messages = await getChatMessages(user.id, chatId);
     setMessages(messages);
@@ -195,16 +220,17 @@ const ChatPage = () => {
   );
 
   //send HTTP request to backend with user message
-  const sendMessage = async () => {
+  const sendMessage = async (messageType: string) => {
     try {
-      if (userInput === "" || !user || !chatId) return;
+      console.log(messageType);
+      if (!user || !chatId) return;
 
       const message = userInput;
 
       // add placeholder message to the chat
       const placeholderMessage = {
         role: "user",
-        content: message,
+        content: messageType == "text" ? message : "Audio placeholder",
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) =>
@@ -218,13 +244,21 @@ const ChatPage = () => {
       setLoadingMessage(true);
 
       //send message to backend
-      const res = await sendChatMessage({
-        chat_id: chats ? chats[0].chat_id : uuidv4(),
-        user_id: user.id,
-        message: message,
-        task_id: taskId,
-        pending_tool_id: pendingToolId,
-      });
+      let res;
+
+      if (messageType === "text") {
+        console.log("RES IS TEXT");
+        res = await sendChatMessage({
+          chat_id: chats ? chats[0].chat_id : uuidv4(),
+          user_id: user.id,
+          message: message,
+          task_id: taskId,
+          pending_tool_id: pendingToolId,
+        });
+      } else if (messageType === "audio") {
+        console.log("RES IS AUDIO");
+        res = await sendAudio(recorderState);
+      }
 
       console.log(res);
 
@@ -250,6 +284,12 @@ const ChatPage = () => {
         setLoadingMessage(false);
       }
 
+      if (res.response_audio) {
+        console.log("-- MESSAGE AUDIO INFO --");
+        console.log(res.response_audio);
+        setAudioUri(res.response_audio);
+      }
+
       return;
     } catch (error) {
       console.log("error sending message: " + error);
@@ -257,7 +297,10 @@ const ChatPage = () => {
   };
 
   return (
-    <View style={styles.pageContainer}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={styles.pageContainer}
+    >
       <ScrollView
         style={{
           height: Dimensions.get("window").height * 0.7,
@@ -305,7 +348,9 @@ const ChatPage = () => {
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
-            onPress={() => (userInput.length !== 0 ? sendMessage() : record())}
+            onPress={() =>
+              userInput.length !== 0 ? sendMessage("text") : record()
+            }
             style={styles.btn}
           >
             {userInput.length !== 0 ? (
@@ -316,14 +361,18 @@ const ChatPage = () => {
           </TouchableOpacity>
         )}
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
 export default ChatPage;
 
 const styles = StyleSheet.create({
-  pageContainer: { alignItems: "center", width: "100%" },
+  pageContainer: {
+    alignItems: "center",
+    width: "100%",
+    backgroundColor: "rgb(242,242,242)",
+  },
 
   chatContainer: {
     display: "flex",
