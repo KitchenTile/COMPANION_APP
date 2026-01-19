@@ -38,7 +38,8 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow ${PRODUCT_NAME} to use your location.",
+          "locationWhenInUsePermission": "Allow ${PRODUCT_NAME} to access your location while using the app",
+          "locationAlwaysAndWhenInUsePermission": "Allow ${PRODUCT_NAME} to always access your location",
           "isIosBackgroundLocationEnabled": true,
           "isAndroidBackgroundLocationEnabled": true
         }
