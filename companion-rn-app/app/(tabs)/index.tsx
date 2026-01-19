@@ -1,9 +1,12 @@
 import { Image } from "expo-image";
 import {
+  Keyboard,
+  KeyboardAvoidingView,
   Platform,
   StyleSheet,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import * as Linking from "expo-linking";
@@ -16,9 +19,6 @@ import { useEffect, useState } from "react";
 import React from "react";
 import * as WebBrowser from "expo-web-browser";
 import { useAuthStore } from "@/store/store";
-import { fetchChat } from "@/api/fetchAPI";
-import { PostgrestError } from "@supabase/supabase-js";
-import { Chat } from "@/utils/types";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -75,111 +75,140 @@ export default function HomeScreen() {
   const logInFunction = async () => {
     // if the input fields are empty, return
     if (email === "" || password === "") return;
+    console.log(`logging in ${email}`);
     //log in
     await login(email, password);
   };
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      headerImage={
-        <Image
-          source={require("@/assets/images/partial-react-logo.png")}
-          style={styles.reactLogo}
-        />
-      }
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      // behavior="padding"
+      style={styles.pageContainer}
     >
-      {user ? (
-        <ThemedView>
-          <ThemedView style={styles.titleContainer}>
-            <ThemedText type="title">
-              Welcome, {user.user_metadata.full_name}
-            </ThemedText>
-            <HelloWave />
-          </ThemedView>
-          <ThemedView>
-            <TouchableOpacity style={styles.loginSignupButton} onPress={logout}>
-              <ThemedText
-                style={{ color: "white", textAlign: "center", fontSize: 20 }}
-              >
-                Log Out
-              </ThemedText>
-            </TouchableOpacity>
-          </ThemedView>
-        </ThemedView>
-      ) : (
-        <View>
-          <ThemedView style={styles.titleContainer}>
-            <ThemedText type="title">
-              {loginState ? "Log In" : "Sign Up"}
-            </ThemedText>
-            <TouchableOpacity onPress={() => setLoginState(!loginState)}>
-              <ThemedText>{loginState ? "Or sign up" : "Or log in"}</ThemedText>
-            </TouchableOpacity>
-          </ThemedView>
-          <ThemedView>
-            {!loginState && (
-              <TextInput
-                value={name}
-                placeholder="Full Name"
-                placeholderTextColor="#000000ff"
-                autoCapitalize="none"
-                onChangeText={setName}
-                style={styles.input}
-              />
-            )}
-            <View>
-              <TextInput
-                value={email}
-                placeholder="Email"
-                keyboardType="email-address"
-                placeholderTextColor="#000000ff"
-                autoCapitalize="none"
-                autoCorrect={false}
-                onChangeText={setEmail}
-                style={styles.input}
-              />
-              <TextInput
-                value={password}
-                placeholder="Password"
-                secureTextEntry
-                placeholderTextColor="#000000ff"
-                autoCapitalize="none"
-                onChangeText={setPassword}
-                style={styles.input}
-              />
-            </View>
-            <TouchableOpacity
-              style={styles.loginSignupButton}
-              onPress={loginState ? logInFunction : singUpFunction}
-            >
-              <ThemedText
-                style={{ color: "white", textAlign: "center", fontSize: 20 }}
-              >
-                {loginState ? "Log In" : "Sign Up"}
-              </ThemedText>
-            </TouchableOpacity>
-          </ThemedView>
-        </View>
-      )}
-
-      <TouchableOpacity style={styles.gmailButton} onPress={openGoogleLink}>
-        <ThemedText
-          style={{ color: "white", textAlign: "center", fontSize: 20 }}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ParallaxScrollView
+          headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
+          headerImage={
+            <Image
+              source={require("@/assets/images/partial-react-logo.png")}
+              style={styles.reactLogo}
+            />
+          }
         >
-          Link Gmail
-        </ThemedText>
-      </TouchableOpacity>
-    </ParallaxScrollView>
+          {user ? (
+            <View>
+              <ThemedView style={styles.titleContainer}>
+                <ThemedText type="title">
+                  Welcome, {user.user_metadata.full_name}
+                </ThemedText>
+                <HelloWave />
+              </ThemedView>
+              <ThemedView>
+                <TouchableOpacity
+                  style={styles.loginSignupButton}
+                  onPress={logout}
+                >
+                  <ThemedText
+                    style={{
+                      color: "white",
+                      textAlign: "center",
+                      fontSize: 20,
+                    }}
+                  >
+                    Log Out
+                  </ThemedText>
+                </TouchableOpacity>
+              </ThemedView>
+            </View>
+          ) : (
+            <View>
+              <View style={styles.titleContainer}>
+                <ThemedText type="title">
+                  {loginState ? "Log In" : "Sign Up"}
+                </ThemedText>
+                <TouchableOpacity onPress={() => setLoginState(!loginState)}>
+                  <ThemedText>
+                    {loginState ? "Or sign up" : "Or log in"}
+                  </ThemedText>
+                </TouchableOpacity>
+              </View>
+              <View>
+                {!loginState && (
+                  <TextInput
+                    value={name}
+                    placeholder="Full Name"
+                    placeholderTextColor="#000000ff"
+                    autoCapitalize="none"
+                    onChangeText={setName}
+                    style={styles.input}
+                  />
+                )}
+                <View>
+                  <TextInput
+                    value={email}
+                    placeholder="Email"
+                    keyboardType="email-address"
+                    placeholderTextColor="#000000ff"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    onChangeText={setEmail}
+                    style={styles.input}
+                  />
+                  <TextInput
+                    value={password}
+                    placeholder="Password"
+                    secureTextEntry
+                    placeholderTextColor="#000000ff"
+                    autoCapitalize="none"
+                    onChangeText={setPassword}
+                    style={styles.input}
+                  />
+                </View>
+                <TouchableOpacity
+                  style={styles.loginSignupButton}
+                  onPress={loginState ? logInFunction : singUpFunction}
+                >
+                  <ThemedText
+                    style={{
+                      color: "white",
+                      textAlign: "center",
+                      fontSize: 20,
+                    }}
+                  >
+                    {loginState ? "Log In" : "Sign Up"}
+                  </ThemedText>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          <TouchableOpacity style={styles.gmailButton} onPress={openGoogleLink}>
+            <ThemedText
+              style={{ color: "white", textAlign: "center", fontSize: 20 }}
+            >
+              Link Gmail
+            </ThemedText>
+          </TouchableOpacity>
+        </ParallaxScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  pageContainer: {
+    // alignItems: "center",
+    // backgroundColor: "rgb(242,242,242)",
+    flex: 1,
+    // paddingTop: 300,
+  },
   titleContainer: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
     marginBottom: 10,
+    width: "100%",
   },
   stepContainer: {
     gap: 8,
