@@ -11,7 +11,11 @@ interface userMessage {
 
 export const getGmailLogin = async () => {
   try {
-    const res = await fetch("http://localhost:8000/gmailLogin");
+    // const res = await fetch("http://192.168.1.28:8000/gmailLogin");
+    const res = await fetch(
+      // "https://isaac-preadditional-tirelessly.ngrok-free.dev/gmailLogin"
+      `${baseURL + "/gmailLogin"}`
+    );
 
     if (!res.ok) {
       console.log("Error fetching data");
@@ -27,7 +31,14 @@ export const getGmailLogin = async () => {
 
 export const getChatMessages = async (chatId: string, userId: string) => {
   try {
-    const res = await fetch(`http://localhost:8000/chat/${chatId}/${userId}`);
+    const res = await fetch(
+      // `http://192.168.1.28:8000/chat/${chatId}/${userId}`
+      // `https://isaac-preadditional-tirelessly.ngrok-free.dev/chat/${chatId}/${userId}`
+      `${baseURL}/chat/${chatId}/${userId}`
+    );
+    console.log(`URL BELOW`);
+
+    console.log(`${baseURL}/chat/${chatId}/${userId}`);
 
     if (!res.ok) {
       console.log("Error fetching data");
@@ -74,4 +85,37 @@ export const fetchChat = async (userId: string) => {
   if (error) return error;
 
   return data;
+};
+
+export const sendAudio = async (audio: any) => {
+  try {
+    console.log(audio);
+    const formData = new FormData();
+
+    formData.append("file", {
+      uri: audio.url,
+      name: "Audio test file",
+      type: "audio/m4a",
+    } as any);
+
+    const res = await fetch(`${baseURL + "/chat/transcript"}`, {
+      method: "POST",
+      headers: { "Content-Type": "multipart/form-data" },
+      body: formData,
+    });
+
+    console.log("User audio:", audio);
+
+    if (!res.ok) {
+      console.log(
+        `failed to handle audio message submission: ${res.status} ${res.statusText}`
+      );
+    }
+
+    const data = await res.json();
+
+    return data;
+  } catch (error) {
+    console.error("Failed to send new message: " + error);
+  }
 };
