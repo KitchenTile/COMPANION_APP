@@ -39,7 +39,10 @@ export interface messageInterface {
   timestamp: string;
 }
 
-export type PacketContent = string | { [key: string]: string };
+export type PacketContent = {
+  message: string;
+  audio_url?: string;
+};
 
 export type DecodedPoint = {
   lat: number;
