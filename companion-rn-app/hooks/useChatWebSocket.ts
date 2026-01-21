@@ -1,3 +1,4 @@
+import { WS_URL } from "@/utils/api";
 import { packetInterface } from "@/utils/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -15,7 +16,10 @@ export const useChatWebsocket = (
   // connect to chatId's websocket
   useEffect(() => {
     if (!chatId) return;
-    const ws = new WebSocket(`ws://localhost:8000/ws/${chatId}`);
+    // const ws = new WebSocket(`ws://localhost:8000/ws/${chatId}`);
+    // const ws = new WebSocket(`ws://192.168.1.28:8000/ws/${chatId}`);
+
+    const ws = new WebSocket(`${WS_URL}/ws/${chatId}`);
     wsRef.current = ws;
 
     ws.onopen = () => {
