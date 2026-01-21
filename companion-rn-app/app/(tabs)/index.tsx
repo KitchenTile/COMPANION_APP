@@ -97,7 +97,7 @@ export default function HomeScreen() {
           }
         >
           {user ? (
-            <View>
+            <ThemedView>
               <ThemedView style={styles.titleContainer}>
                 <ThemedText type="title">
                   Welcome, {user.user_metadata.full_name}
@@ -120,10 +120,10 @@ export default function HomeScreen() {
                   </ThemedText>
                 </TouchableOpacity>
               </ThemedView>
-            </View>
+            </ThemedView>
           ) : (
-            <View>
-              <View style={styles.titleContainer}>
+            <ThemedView>
+              <ThemedView style={styles.titleContainer}>
                 <ThemedText type="title">
                   {loginState ? "Log In" : "Sign Up"}
                 </ThemedText>
@@ -132,8 +132,8 @@ export default function HomeScreen() {
                     {loginState ? "Or sign up" : "Or log in"}
                   </ThemedText>
                 </TouchableOpacity>
-              </View>
-              <View>
+              </ThemedView>
+              <ThemedView>
                 {!loginState && (
                   <TextInput
                     value={name}
@@ -144,7 +144,7 @@ export default function HomeScreen() {
                     style={styles.input}
                   />
                 )}
-                <View>
+                <ThemedView>
                   <TextInput
                     value={email}
                     placeholder="Email"
@@ -164,7 +164,7 @@ export default function HomeScreen() {
                     onChangeText={setPassword}
                     style={styles.input}
                   />
-                </View>
+                </ThemedView>
                 <TouchableOpacity
                   style={styles.loginSignupButton}
                   onPress={loginState ? logInFunction : singUpFunction}
@@ -179,8 +179,8 @@ export default function HomeScreen() {
                     {loginState ? "Log In" : "Sign Up"}
                   </ThemedText>
                 </TouchableOpacity>
-              </View>
-            </View>
+              </ThemedView>
+            </ThemedView>
           )}
 
           <TouchableOpacity style={styles.gmailButton} onPress={openGoogleLink}>
@@ -199,7 +199,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   pageContainer: {
     // alignItems: "center",
-    // backgroundColor: "rgb(242,242,242)",
+    backgroundColor: "rgb(242,242,242)",
     flex: 1,
     // paddingTop: 300,
   },
