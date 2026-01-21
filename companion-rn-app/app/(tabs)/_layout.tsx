@@ -14,7 +14,16 @@ export default function TabLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <Tabs tabBar={(props: BottomTabBarProps) => <TabBar {...props} />}>
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+        headerShown: false,
+        // tabBarButton: HapticTab,
+        // tabBarBackground: TabBarBackground,
+        // tabBarHideOnKeyboard: true,
+      }}
+      tabBar={(props: BottomTabBarProps) => <TabBar {...props} />}
+    >
       <Tabs.Screen
         name="index"
         options={{
@@ -22,16 +31,10 @@ export default function TabLayout() {
         }}
       />
 
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="news"
         options={{
           title: "News",
-        }}
-      />
-      {/* <Tabs.Screen
-        name="events"
-        options={{
-          title: "Events",
         }}
       /> */}
       <Tabs.Screen
