@@ -40,10 +40,16 @@ import {
   useAudioRecorderState,
   useAudioPlayer,
 } from "expo-audio";
+import VoiceComponentView from "@/components/VoiceComponent";
+import { ThemedView } from "@/components/ThemedView";
 
 const ChatPage = () => {
   // user from store
   const user = useAuthStore((state) => state.user);
+
+  const [chatVisible, setChatVisible] = useState<boolean>(false);
+
+  const [isTalking, setIsTalking] = useState<boolean>(false);
 
   const [messages, setMessages] = useState<messageInterface[]>([]);
   const [chats, setChats] = useState<Chat[] | null>(null);
@@ -136,12 +142,15 @@ const ChatPage = () => {
     } catch (e) {
       console.error("Failed to start recording", e);
     }
+    // setIsTalking(true);
   };
 
   // stop recording audio function
   const stopRecording = async () => {
     await audioRecorder.stop();
     sendMessage("audio");
+    // setIsTalking(false);
+    // console.log("stop recording");
   };
 
   // handle info from websocket
@@ -185,6 +194,7 @@ const ChatPage = () => {
   const sendPacket = useChatWebsocket(chatId, handleIncomingPacket);
 
   const handleDerail = (polyline: DecodedPoint[]) => {
+    const origin = polyline[0];
     const destination = polyline[polyline.length - 1];
 
     console.log("handle derail");
@@ -205,6 +215,8 @@ const ChatPage = () => {
           message: `I am currently at ${location?.coords.latitude}, ${location?.coords.longitude}. I have deviated from the route. Please calculate a new route to the following destination ${destination.lat}, ${destination.lng} by bus and subway.`,
           lost_coords: `${location?.coords.latitude}, ${location?.coords.longitude}`,
           destination: `$${destination.lat}, ${destination.lng}`,
+          origin: `${(origin.lat, origin.lng)}`,
+          audio_url: null,
         },
       };
 
@@ -297,71 +309,85 @@ const ChatPage = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={styles.pageContainer}
-    >
-      <ScrollView
-        style={{
-          height: Dimensions.get("window").height * 0.7,
-          width: Dimensions.get("window").width * 1,
-        }}
-        contentContainerStyle={styles.chatContainer}
-        ref={scrollViewRef}
-        onContentSizeChange={() => scrollViewRef.current?.scrollToEnd()}
-      >
-        {messages?.map((individualMessage: messageInterface, index) => (
-          <View
-            style={[
-              styles.messageContainer,
-              individualMessage.role === "user" && styles.userMessageContainer,
-            ]}
-            key={index}
+    <ThemedView style={{ flex: 1 }}>
+      <VoiceComponentView
+        isTalking={audioRecorder.isRecording}
+        // isTalking={isTalking}
+        chatVisible={chatVisible}
+        onMicPress={record}
+        onPausePress={stopRecording}
+        loadingBubble={loadingMessage}
+        onToggleChat={() => setChatVisible(!chatVisible)}
+      />
+      {chatVisible && (
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={[styles.pageContainer]}
+        >
+          <ScrollView
+            style={{
+              height: Dimensions.get("window").height * 0.755,
+              width: Dimensions.get("window").width * 1,
+            }}
+            contentContainerStyle={styles.chatContainer}
+            ref={scrollViewRef}
+            onContentSizeChange={() => scrollViewRef.current?.scrollToEnd()}
           >
-            <Text
-              style={[
-                styles.message,
-                individualMessage.role === "user" && styles.userMessage,
-              ]}
-            >
-              {typeof individualMessage.content !== "object" &&
-                individualMessage.content}
-            </Text>
-          </View>
-        ))}
-        {loadingMessage && (
-          <View style={[styles.loadingBubble]}>
-            <TypingIndicator />
-          </View>
-        )}
-      </ScrollView>
-      <View style={styles.inputRow}>
-        <TextInput
-          style={styles.input}
-          onChangeText={setUserInput}
-          value={userInput}
-          placeholder="Record or type.."
-        />
-        {recorderState.isRecording ? (
-          <TouchableOpacity onPress={stopRecording} style={styles.btn}>
-            <FontAwesome6 name="pause" size={20} color="#4d4c4cff" />
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            onPress={() =>
-              userInput.length !== 0 ? sendMessage("text") : record()
-            }
-            style={styles.btn}
-          >
-            {userInput.length !== 0 ? (
-              <Text style={styles.btnTxt}>→</Text>
-            ) : (
-              <FontAwesome6 name="microphone" size={20} color="#4d4c4cff" />
+            {messages?.map((individualMessage: messageInterface, index) => (
+              <View
+                style={[
+                  styles.messageContainer,
+                  individualMessage.role === "user" &&
+                    styles.userMessageContainer,
+                ]}
+                key={index}
+              >
+                <Text
+                  style={[
+                    styles.message,
+                    individualMessage.role === "user" && styles.userMessage,
+                  ]}
+                >
+                  {typeof individualMessage.content !== "object" &&
+                    individualMessage.content}
+                </Text>
+              </View>
+            ))}
+            {loadingMessage && (
+              <View style={[styles.loadingBubble]}>
+                <TypingIndicator />
+              </View>
             )}
-          </TouchableOpacity>
-        )}
-      </View>
-    </KeyboardAvoidingView>
+          </ScrollView>
+          <View style={styles.inputRow}>
+            <TextInput
+              style={styles.input}
+              onChangeText={setUserInput}
+              value={userInput}
+              placeholder="Record or type.."
+            />
+            {recorderState.isRecording ? (
+              <TouchableOpacity onPress={stopRecording} style={styles.btn}>
+                <FontAwesome6 name="pause" size={20} color="#4d4c4cff" />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                onPress={() =>
+                  userInput.length !== 0 ? sendMessage("text") : record()
+                }
+                style={styles.btn}
+              >
+                {userInput.length !== 0 ? (
+                  <Text style={styles.btnTxt}>→</Text>
+                ) : (
+                  <FontAwesome6 name="microphone" size={20} color="#4d4c4cff" />
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
+        </KeyboardAvoidingView>
+      )}
+    </ThemedView>
   );
 };
 
@@ -371,7 +397,9 @@ const styles = StyleSheet.create({
   pageContainer: {
     alignItems: "center",
     width: "100%",
-    backgroundColor: "rgb(242,242,242)",
+    position: "absolute",
+    top: 60,
+    // backgroundColor: "rgb(242,242,242)",
   },
 
   chatContainer: {
