@@ -1,4 +1,10 @@
-import { AntDesign, Feather, FontAwesome6, Ionicons } from "@expo/vector-icons";
+import {
+  AntDesign,
+  Feather,
+  FontAwesome6,
+  Fontisto,
+  Ionicons,
+} from "@expo/vector-icons";
 import React from "react";
 
 export const icon = {
@@ -11,6 +17,9 @@ export const icon = {
 
   news: (props: any) => (
     <FontAwesome6 name="newspaper" size={24} color="black" {...props} />
+  ),
+  map: (props: any) => (
+    <Fontisto name="map" size={24} color="black" {...props} />
   ),
   chat: (props: any) => (
     <Ionicons
