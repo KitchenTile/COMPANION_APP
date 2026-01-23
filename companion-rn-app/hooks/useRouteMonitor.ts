@@ -2,12 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import * as Location from "expo-location";
 import { DecodedPoint, decodedPolyline } from "@/utils/types";
 import { isUserOnTrack } from "@/utils/locationUtils";
+import { useAuthStore } from "@/store/store";
 
 export const useRouteMonitor = (
   location: Location.LocationObject | null,
   onDerail: (polyline: DecodedPoint[]) => void
 ) => {
-  const [polyline, setPolyline] = useState<DecodedPoint[] | null>(null);
+  // const [polyline, setPolyline] = useState<DecodedPoint[] | null>(null);
+  const setPolyline = useAuthStore((state) => state.setPolyline);
+  const polyline = useAuthStore((state) => state.polyline);
   const [isDerailed, setIsDerailed] = useState<boolean>(false);
 
   const derailTriggeredRef = useRef(false);
