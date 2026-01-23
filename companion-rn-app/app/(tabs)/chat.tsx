@@ -70,6 +70,12 @@ const ChatPage = () => {
   //location manager hook
   const location = useLocationTracker();
 
+  // useEffect(() => {
+  //   setPolylineFunction(
+  //     "qnvyHf`k@MHRh@]b@kB|CACGMm@fAK`@_BhDgBjCe@l@Gd@_JnL]Rs@Hi@FYVWn@Id@OZ[LUASOM[Ko@?KG]KkAiAyCg@[e@Zk@Jc@K_@Y[u@Ia@G{@\\}H@cBDyAC_AWkDQMIk@OiBSeAOJNKQi@a@_@m@SUEuDfB_AeFMq@]JGF[DMMI[O{@@QVY`@_@g@uCGIc@sBo@kBIQCQS[AKi@YuAYaAg@oA{@MUEc@@UGa@KOQOIU?e@Pu@LMTFHJ^Qh@gADUcAgDA{@iAiD}AgD}B_DkBqBwCqCcCgC}AgAoAg@{G}@_Bk@gN}FiCcBkAqAaAwAu@_BKL@Av@`B`AxAM?ANFTVXCmCGu@a@i@ADRl@?Ho@oA\\x@fA~Ax@x@pAz@`@]HOh@sEHcC@_@"
+  //   );
+  // }, []);
+
   useEffect(() => {
     if (!user) return;
 
