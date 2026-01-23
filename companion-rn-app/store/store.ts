@@ -1,13 +1,17 @@
 import { supabase } from "@/supabase/supabase";
 import { AuthStore } from "@/utils/types";
 import { create } from "zustand";
+import { DecodedPoint } from "@/utils/types";
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
   isLoggedIn: false,
   isLoading: false,
   user: null,
+  polyline: null,
   error: null,
   session: null,
+
+  setPolyline: (polyline: any) => set(polyline),
 
   login: async (email: string, password: string) => {
     set({ isLoading: true, error: null });
@@ -19,6 +23,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
       if (error) {
         set({ error: error });
+        console.log(error);
         return;
       }
 
