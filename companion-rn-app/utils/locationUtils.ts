@@ -86,5 +86,5 @@ export const isUserOnTrack = (
   console.log("minDistance");
   console.log(minDistance);
 
-  return minDistance < 10;
+  return minDistance < 100;
 };
