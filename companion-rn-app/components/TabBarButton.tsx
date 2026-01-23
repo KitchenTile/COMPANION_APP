@@ -45,7 +45,7 @@ const TabBarButton = ({
 
   const animatedIconStyle = useAnimatedStyle(() => {
     const scaleValue = interpolate(scale.value, [0, 1], [1, 1.2]);
-    const center = interpolate(scale.value, [0, 1], [0, 6]);
+    const center = interpolate(scale.value, [0, 1], [0, 4]);
 
     return {
       transform: [
