@@ -19,10 +19,23 @@ import { useEffect, useState } from "react";
 import React from "react";
 import * as WebBrowser from "expo-web-browser";
 import { useAuthStore } from "@/store/store";
+import { ScrollView } from "react-native";
+import {
+  Entypo,
+  FontAwesome6,
+  Ionicons,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function HomeScreen() {
+  //TODO:
+  // huge file
+  // currently not connected to any real data
+  // implement device vitals
+  //
+
   // imports from store
   const login = useAuthStore((state) => state.login);
   const logout = useAuthStore((store) => store.logout);
@@ -83,7 +96,6 @@ export default function HomeScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      // behavior="padding"
       style={styles.pageContainer}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -91,35 +103,375 @@ export default function HomeScreen() {
           headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
           headerImage={
             <Image
-              source={require("@/assets/images/partial-react-logo.png")}
+              source={require("@/assets/images/bertha.jpg")}
               style={styles.reactLogo}
             />
           }
         >
           {user ? (
             <ThemedView>
-              <ThemedView style={styles.titleContainer}>
+              <ThemedView style={[styles.titleContainer, { gap: 80 }]}>
                 <ThemedText type="title">
-                  Welcome, {user.user_metadata.full_name}
+                  {user.user_metadata.full_name}'s Dashboard
                 </ThemedText>
-                <HelloWave />
+                <FontAwesome6 name="circle-info" size={32} color="#723feb" />
               </ThemedView>
-              <ThemedView>
-                <TouchableOpacity
-                  style={styles.loginSignupButton}
-                  onPress={logout}
+              <ThemedView style={[styles.infoContainer, styles.shadow]}>
+                <ThemedText style={styles.infoTitle}>
+                  Your appointments for the week
+                </ThemedText>
+                <ThemedView
+                  style={{
+                    flexDirection: "row",
+                    gap: 10,
+                    marginLeft: 20,
+                    marginTop: 15,
+                    alignItems: "center",
+                    // backgroundColor: "red",
+                  }}
                 >
-                  <ThemedText
+                  <ThemedView style={styles.arrowTurn}>
+                    <FontAwesome6
+                      name="arrow-turn-up"
+                      size={24}
+                      color="black"
+                    />
+                  </ThemedView>
+                  <View
                     style={{
-                      color: "white",
-                      textAlign: "center",
-                      fontSize: 20,
+                      backgroundColor: "#e2e2e2ff",
+                      alignItems: "center",
+                      borderRadius: 20,
+                      padding: 5,
+                      paddingHorizontal: 10,
                     }}
                   >
-                    Log Out
-                  </ThemedText>
-                </TouchableOpacity>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 10,
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: 5,
+                          backgroundColor: "#029802ff",
+                        }}
+                      />
+                      <ThemedText style={{ fontWeight: 600 }}>
+                        General appointment with Dr. Martins
+                      </ThemedText>
+                    </View>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        gap: 20,
+                        paddingLeft: 30,
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <ThemedText style={{ fontWeight: 600, fontSize: 14 }}>
+                        Status: Confirmed
+                      </ThemedText>
+                      <ThemedText style={{ fontWeight: 600, fontSize: 14 }}>
+                        Tuesday 10:00 AM
+                      </ThemedText>
+                    </View>
+                  </View>
+                </ThemedView>
+                <ThemedView
+                  style={{
+                    flexDirection: "row",
+                    gap: 10,
+                    marginLeft: 20,
+                    marginTop: 5,
+                    alignItems: "center",
+                    // backgroundColor: "red",
+                  }}
+                >
+                  <ThemedView style={styles.arrowTurn}>
+                    <FontAwesome6
+                      name="arrow-turn-up"
+                      size={24}
+                      color="black"
+                    />
+                  </ThemedView>
+                  <View
+                    style={{
+                      backgroundColor: "#e2e2e2ff",
+                      alignItems: "center",
+                      borderRadius: 20,
+                      padding: 5,
+                      paddingHorizontal: 10,
+                      width: "90%",
+                    }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 10,
+                        width: "100%",
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: 5,
+                          backgroundColor: "#029802ff",
+                        }}
+                      />
+                      <ThemedText style={{ fontWeight: 600 }}>
+                        Optician appointment
+                      </ThemedText>
+                    </View>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        gap: 30,
+                        paddingLeft: 20,
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <ThemedText style={{ fontWeight: 600, fontSize: 14 }}>
+                        Status: Confirmed
+                      </ThemedText>
+                      <ThemedText style={{ fontWeight: 600, fontSize: 14 }}>
+                        Friday 11:00 AM
+                      </ThemedText>
+                    </View>
+                  </View>
+                </ThemedView>
+                <ThemedView
+                  style={{
+                    flexDirection: "row",
+                    gap: 10,
+                    marginLeft: 20,
+                    marginTop: 5,
+                    alignItems: "center",
+                    // backgroundColor: "red",
+                  }}
+                >
+                  <ThemedView style={styles.arrowTurn}>
+                    <FontAwesome6
+                      name="arrow-turn-up"
+                      size={24}
+                      color="black"
+                    />
+                  </ThemedView>
+                  <View
+                    style={{
+                      backgroundColor: "#e2e2e2ff",
+                      alignItems: "center",
+                      borderRadius: 20,
+                      padding: 5,
+                      paddingHorizontal: 10,
+                      width: "90%",
+                    }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 10,
+                        width: "100%",
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: 5,
+                          backgroundColor: "#ee2a2aff",
+                        }}
+                      />
+                      <ThemedText style={{ fontWeight: 600 }}>
+                        Dental appointment with Dr. Lee
+                      </ThemedText>
+                    </View>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        gap: 30,
+                        paddingLeft: 20,
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <ThemedText style={{ fontWeight: 600, fontSize: 14 }}>
+                        Status: Cancelled
+                      </ThemedText>
+                      <ThemedText style={{ fontWeight: 600, fontSize: 14 }}>
+                        Friday 12:00 PM
+                      </ThemedText>
+                    </View>
+                  </View>
+                </ThemedView>
+                <ThemedView
+                  style={{
+                    flexDirection: "row",
+                    gap: 10,
+                    marginLeft: 20,
+                    marginTop: 5,
+                    alignItems: "center",
+                    // backgroundColor: "red",
+                  }}
+                >
+                  <ThemedView style={styles.arrowTurn}>
+                    <FontAwesome6
+                      name="arrow-turn-up"
+                      size={24}
+                      color="black"
+                    />
+                  </ThemedView>
+                  <View
+                    style={{
+                      backgroundColor: "#e2e2e2ff",
+                      alignItems: "center",
+                      borderRadius: 20,
+                      padding: 5,
+                      paddingHorizontal: 10,
+                      width: "90%",
+                    }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 10,
+                        width: "100%",
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: 5,
+                          backgroundColor: "#fbff00ff",
+                        }}
+                      />
+                      <ThemedText style={{ fontWeight: 600 }}>
+                        Councelling with Dr. Stephens
+                      </ThemedText>
+                    </View>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        gap: 30,
+                        paddingLeft: 20,
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <ThemedText style={{ fontWeight: 600, fontSize: 14 }}>
+                        Status: Conflicting
+                      </ThemedText>
+                      <ThemedText style={{ fontWeight: 600, fontSize: 14 }}>
+                        Friday 12:00 PM
+                      </ThemedText>
+                    </View>
+                  </View>
+                </ThemedView>
+                <View style={styles.infoIcon}>
+                  <Ionicons name="calendar" size={20} color="white" />
+                </View>
               </ThemedView>
+              <ThemedView style={[styles.infoContainer, styles.shadow]}>
+                <ThemedText style={styles.infoTitle}>Device Vitals</ThemedText>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-evenly",
+                  }}
+                >
+                  <View style={styles.vitalContainer}>
+                    <FontAwesome6 name="battery-half" size={22} color="white" />
+                    <ThemedText style={{ fontWeight: 600, color: "white" }}>
+                      76%
+                    </ThemedText>
+                  </View>
+                  <View style={styles.vitalContainer}>
+                    <FontAwesome6 name="signal" size={16} color="white" />
+                    <ThemedText style={{ fontWeight: 600, color: "white" }}>
+                      4G
+                    </ThemedText>
+                  </View>
+                  <View style={styles.vitalContainer}>
+                    <FontAwesome6 name="wifi" size={16} color="white" />
+                    <View
+                      style={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: 5,
+                        backgroundColor: "#029802ff",
+                      }}
+                    />
+                  </View>
+                  <View style={styles.vitalContainer}>
+                    <FontAwesome6 name="volume-high" size={16} color="white" />
+                  </View>
+                </View>
+                <View style={styles.infoIcon}>
+                  <Ionicons name="pulse-outline" size={20} color="white" />
+                </View>
+              </ThemedView>
+              <ThemedView style={[styles.infoContainer, styles.shadow]}>
+                <ThemedText style={styles.infoTitle}>
+                  Upcoming reminders
+                </ThemedText>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    marginTop: 20,
+                    gap: 10,
+                  }}
+                >
+                  <View style={[styles.warningSign, styles.shadow]}>
+                    <ThemedText
+                      style={{
+                        fontSize: 30,
+                        fontWeight: 600,
+                        textAlign: "center",
+                        alignItems: "center",
+                        lineHeight: 45,
+                        color: "white",
+                      }}
+                    >
+                      !
+                    </ThemedText>
+                  </View>
+                  <View style={styles.warningContainer}>
+                    <ThemedText style={{ fontWeight: 600, fontSize: 17 }}>
+                      Remember to get the clothes off thene
+                    </ThemedText>
+                  </View>
+                </View>
+                <View style={styles.infoIcon}>
+                  <MaterialCommunityIcons
+                    name="reminder"
+                    size={20}
+                    color="white"
+                  />
+                </View>
+              </ThemedView>
+              {/* <ThemedView>
+                  <TouchableOpacity
+                    style={styles.loginSignupButton}
+                    onPress={logout}
+                  >
+                    <ThemedText
+                      style={{
+                        color: "white",
+                        textAlign: "center",
+                        fontSize: 20,
+                      }}
+                    >
+                      Log Out
+                    </ThemedText>
+                  </TouchableOpacity>
+                </ThemedView> */}
             </ThemedView>
           ) : (
             <ThemedView>
@@ -183,13 +535,13 @@ export default function HomeScreen() {
             </ThemedView>
           )}
 
-          <TouchableOpacity style={styles.gmailButton} onPress={openGoogleLink}>
+          {/* <TouchableOpacity style={styles.gmailButton} onPress={openGoogleLink}>
             <ThemedText
               style={{ color: "white", textAlign: "center", fontSize: 20 }}
             >
               Link Gmail
             </ThemedText>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </ParallaxScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
@@ -198,16 +550,14 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   pageContainer: {
-    // alignItems: "center",
-    backgroundColor: "rgb(242,242,242)",
+    backgroundColor: "rgba(255, 255, 253, 1)",
     flex: 1,
-    // paddingTop: 300,
   },
   titleContainer: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    marginBottom: 10,
+    marginVertical: 15,
     width: "100%",
   },
   stepContainer: {
@@ -215,8 +565,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   reactLogo: {
-    height: 178,
-    width: 290,
+    height: 250,
+    width: 400,
     bottom: 0,
     left: 0,
     position: "absolute",
@@ -249,5 +599,80 @@ const styles = StyleSheet.create({
     borderColor: "#1E293B",
     borderStyle: "solid",
     borderWidth: 2,
+  },
+  infoContainer: {
+    height: "auto",
+    width: "100%",
+    borderRadius: 20,
+    backgroundColor: "white",
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderColor: "#733feb48",
+    padding: 15,
+    marginBottom: 20,
+  },
+  infoTitle: {
+    fontWeight: 600,
+    fontSize: 20,
+    paddingLeft: 5,
+    color: "rgb(62,62,68)",
+  },
+  infoIcon: {
+    height: 35,
+    width: 35,
+    borderRadius: 17.5,
+    backgroundColor: "#723feb",
+    position: "absolute",
+    top: 10,
+    right: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  arrowTurn: {
+    position: "relative",
+    top: -10,
+    left: 0,
+    transform: "rotate(90deg)",
+  },
+
+  vitalContainer: {
+    marginTop: 20,
+    width: "auto",
+    paddingHorizontal: 10,
+    gap: 10,
+    height: 30,
+    borderRadius: 20,
+    backgroundColor: "#723feb",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-evenly",
+  },
+
+  warningSign: {
+    height: 40,
+    width: 30,
+    borderRadius: 15,
+    backgroundColor: "#723feb",
+  },
+
+  warningContainer: {
+    alignItems: "center",
+    flexDirection: "row",
+    borderRadius: 15,
+    borderStyle: "solid",
+    borderWidth: 2,
+    borderColor: "#723feb",
+    flex: 1,
+    paddingLeft: 10,
+    paddingRight: 10,
+    gap: 60,
+  },
+
+  shadow: {
+    shadowColor: "#000000b4",
+    shadowOffset: { width: 0, height: 5 },
+    shadowRadius: 10,
+    shadowOpacity: 0.1,
+    boxShadow: "rgba(0, 0, 0, 0.01) 0px 5px 50px 0px",
   },
 });
