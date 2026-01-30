@@ -22,9 +22,11 @@ export interface AuthStore {
   isLoggedIn: boolean;
   isLoading: boolean;
   user: User | null;
+  polyline: DecodedPoint[] | null;
   session: Session | null;
   error: any;
 
+  setPolyline: (polyline: DecodedPoint[]) => void;
   login: (email: string, password: string) => Promise<void>;
   signUp: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -41,7 +43,7 @@ export interface messageInterface {
 
 export type PacketContent = {
   message: string;
-  audio_url?: string;
+  audio_url: string | null;
 };
 
 export type DecodedPoint = {
