@@ -419,6 +419,7 @@ const styles = StyleSheet.create({
     borderColor: "#733feb48",
     transform: "translateX(5%)",
     padding: 10,
+    backgroundColor: "white",
   },
   routeTracker: {
     height: 70,
