@@ -3,9 +3,37 @@ import { ReactFlow, Panel, Background, Controls } from "@xyflow/react";
 import * as d3 from "d3-hierarchy";
 import "@xyflow/react/dist/style.css";
 
+type Risk = {
+  failure_mode: string;
+  label: string;
+  prevention: string[];
+  correction: string[];
+  severity: number;
+};
+
+type Step = {
+  node_from: string;
+  node_to: string;
+  label: string;
+  risks: Risk[];
+};
+
+type TravelData = {
+  steps: Step[];
+};
+
+interface TreeNode {
+  id: string;
+  name: string;
+  type: string;
+  children?: TreeNode[];
+  label?: string;
+  severity?: number;
+}
+
 // --- DATA TRANSFORMER ---
-const transformDataForD3 = (data) => {
-  const buildStepChildren = (stepIndex) => {
+const transformDataForD3 = (data: TravelData): TreeNode => {
+  const buildStepChildren = (stepIndex: number): TreeNode[] => {
     if (stepIndex >= data.steps.length) return [];
 
     const currentStep = data.steps[stepIndex];
@@ -47,7 +75,7 @@ const transformDataForD3 = (data) => {
       return riskNode;
     });
 
-    const nextLocationNode = {
+    const nextLocationNode: TreeNode = {
       id: currentStep.node_to,
       name: currentStep.node_to,
       label: currentStep.label,
@@ -158,7 +186,7 @@ export default function App() {
     const hierarchy = d3.hierarchy(hierarchyData);
 
     // Increased width (y-axis in D3 terms) to accommodate the extra layer of nodes
-    const treeLayout = d3.tree().nodeSize([100, 100]);
+    const treeLayout = d3.tree<TreeNode>().nodeSize([100, 100]);
     const root = treeLayout(hierarchy);
 
     const flowNodes = root.descendants().map((d) => ({
