@@ -43,6 +43,12 @@ export default function TabLayout() {
           title: "Chat",
         }}
       />
+      <Tabs.Screen
+        name="map"
+        options={{
+          title: "Map",
+        }}
+      />
     </Tabs>
   );
 }
