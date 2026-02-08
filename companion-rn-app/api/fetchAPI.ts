@@ -29,6 +29,31 @@ export const getGmailLogin = async () => {
   }
 };
 
+export const calculateRouteGraph = async (
+  origin: string,
+  destination: string
+) => {
+  try {
+    const res = await fetch(`${baseURL + "/anticip8/demo"}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ origin, destination }),
+    });
+
+    if (!res.ok) {
+      console.log(
+        `failed to calculate map graph: ${res.status} ${res.statusText}`
+      );
+    }
+
+    const data = await res.json();
+
+    return data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export const getChatMessages = async (chatId: string, userId: string) => {
   try {
     const res = await fetch(
