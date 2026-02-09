@@ -9,6 +9,11 @@ interface userMessage {
   pending_tool_id: string | null;
 }
 
+interface routeRequest {
+  origin: string;
+  destination: string;
+}
+
 export const getGmailLogin = async () => {
   try {
     // const res = await fetch("http://192.168.1.28:8000/gmailLogin");
@@ -29,15 +34,16 @@ export const getGmailLogin = async () => {
   }
 };
 
-export const calculateRouteGraph = async (
-  origin: string,
-  destination: string
-) => {
+export const calculateRouteGraph = async (routeRequest: routeRequest) => {
   try {
-    const res = await fetch(`${baseURL + "/anticip8/demo"}`, {
+    console.log(routeRequest);
+    // const res = await fetch(`${baseURL + "/anticip8/demo"}`, {
+    const res = await fetch(`http://34.227.7.88:8000/anticip8/demo`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ origin, destination }),
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(routeRequest),
     });
 
     if (!res.ok) {
