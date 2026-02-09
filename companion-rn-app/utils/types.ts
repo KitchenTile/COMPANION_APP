@@ -63,3 +63,31 @@ export interface packetInterface {
   receiver: string;
   polyline?: string;
 }
+
+export type Risk = {
+  failure_mode: string;
+  label: string;
+  prevention: string[];
+  correction: string[];
+  severity: number;
+};
+
+export type Step = {
+  node_from: string;
+  node_to: string;
+  label: string;
+  risks: Risk[];
+};
+
+export type TravelData = {
+  steps: Step[];
+};
+
+export interface TreeNode {
+  id: string;
+  name: string;
+  type: string;
+  children?: TreeNode[];
+  label?: string;
+  severity?: number;
+}
