@@ -10,15 +10,16 @@ import LoadingComponent from "./LoadingComponent.web";
 export default function App() {
   const [travelData, setTravelData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [origin, setOrigin] = useState(
-    "Trolley Park, Brent Cross, London NW2 6GJ"
-  );
-  const [destination, setDestination] = useState("51.5860469, -0.2071016");
+  const [origin, setOrigin] = useState("Hendon Library, London NW4 4BQ");
+  const [destination, setDestination] = useState("Brent Cross, London NW4 3AY");
 
   const getTravelData = async () => {
     if (origin == "" || destination == "") return;
     setLoading(true);
-    const travelData = await calculateRouteGraph(origin, destination);
+    const travelData = await calculateRouteGraph({
+      origin: origin,
+      destination: destination,
+    });
     setTravelData(travelData);
     if (travelData) {
       setLoading(false);
@@ -88,38 +89,89 @@ export default function App() {
         <Panel position="top-right">{travelData && travelData.id}</Panel>
       </ReactFlow>
 
-      <div
-        style={{
-          width: 300,
-          height: 100,
-          position: "absolute",
-          top: 10,
-          left: 10,
-          borderRadius: 10,
-          backgroundColor: "#fff",
-          borderStyle: "solid",
-          borderWidth: 2,
-          display: "flex",
-          flexDirection: "column",
-          padding: 10,
-        }}
-      >
-        <input
-          placeholder="Origin..."
-          type="text"
-          value={origin}
-          onChange={(e) => setOrigin(e.target.value)}
-        />
-        <input
-          placeholder="Destination..."
-          type="text"
-          value={destination}
-          onChange={(e) => setDestination(e.target.value)}
-        />
-        <button onClick={getTravelData}>Generate Route Graph</button>
+      <div style={styles.container}>
+        <label style={styles.label}>
+          Origin:
+          <input
+            placeholder="Origin..."
+            type="text"
+            value={origin}
+            onChange={(e) => setOrigin(e.target.value)}
+            style={styles.input}
+          />
+        </label>
+        <label style={styles.label}>
+          Destination:
+          <input
+            style={styles.input}
+            placeholder="Destination..."
+            type="text"
+            value={destination}
+            onChange={(e) => setDestination(e.target.value)}
+          />
+        </label>
+        <button
+          style={styles.button}
+          onClick={getTravelData}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#333")}
+          onMouseOut={(e) =>
+            (e.currentTarget.style.backgroundColor = "#1a1a1a")
+          }
+        >
+          Generate Route Graph
+        </button>
       </div>
     </div>
   );
 }
 
-const styles = {};
+const styles = {
+  container: {
+    width: 320,
+    position: "absolute" as const,
+    top: 20,
+    left: 20,
+    borderRadius: "12px",
+    backgroundColor: "#ffffff",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+    border: "1px solid #e0e0e0",
+    display: "flex",
+    flexDirection: "column" as const,
+    padding: "20px",
+    gap: "12px",
+    zIndex: 5,
+  },
+  label: {
+    display: "flex",
+    flexDirection: "column" as const,
+    fontSize: "12px",
+    fontWeight: "600",
+    color: "#666",
+    gap: "4px",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.5px",
+    fontFamily: "Inter, system-ui, sans-serif",
+  },
+  input: {
+    padding: "10px 12px",
+    borderRadius: "6px",
+    border: "1px solid #ddd",
+    fontSize: "14px",
+    color: "#333",
+    backgroundColor: "#f9f9f9",
+    outline: "none",
+    transition: "border-color 0.2s ease",
+  },
+  button: {
+    marginTop: "8px",
+    padding: "12px",
+    borderRadius: "6px",
+    backgroundColor: "#1a1a1a",
+    color: "#fff",
+    border: "none",
+    fontSize: "14px",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "background-color 0.2s ease",
+  },
+};
