@@ -23,11 +23,22 @@ const transformDataForD3 = (data: TravelData): TreeNode => {
         children: [
           {
             id: `${currentStep.node_to}-${risk.failure_mode}-correction`,
-            name: risk.correction[0],
+            name: risk.best_correction
+              ? risk.best_correction
+              : risk.correction[0],
             type: "correction",
           },
         ],
       };
+
+      if (risk.best_prevention) {
+        return {
+          id: `${currentStep.node_to}-${risk.failure_mode}-gatekeeper`,
+          name: risk.best_prevention,
+          type: "prevention",
+          children: [riskNode],
+        };
+      }
 
       // If a prevention exists, this node becomes the parent of the Risk Node
       if (firstPrevention) {
