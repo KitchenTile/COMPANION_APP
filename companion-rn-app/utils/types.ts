@@ -69,6 +69,8 @@ export type Risk = {
   label: string;
   prevention: string[];
   correction: string[];
+  best_prevention: string;
+  best_correction: string;
   severity: number;
 };
 
