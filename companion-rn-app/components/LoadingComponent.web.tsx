@@ -21,21 +21,34 @@ const LoadingComponent = () => {
         position: "absolute",
         top: "50%",
         left: "50%",
-        backgroundColor: "white",
-        border: "2px solid #ccc",
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        backdropFilter: "blur(4px)",
         transform: "translate(-50%,-50%)",
-        zIndex: 10,
-        height: 300,
-        width: 300,
+        zIndex: 100,
+        height: 280,
+        width: 320,
         display: "flex",
         alignItems: "center",
-        borderRadius: 10,
+        justifyContent: "center",
+        borderRadius: "16px",
         flexDirection: "column",
-        gap: 60,
+        gap: "30px",
+        boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+        border: "1px solid rgba(0,0,0,0.05)",
       }}
     >
       <style>{animationStyles}</style>
-      <h2>Calculating Graph...</h2>
+      <h2
+        style={{
+          margin: 0,
+          fontSize: "18px",
+          fontWeight: "600",
+          color: "#1a1a1a",
+          fontFamily: "Inter, system-ui, sans-serif",
+        }}
+      >
+        Calculating Graph...
+      </h2>
       <svg
         className="loading-svg"
         viewBox="0 0 80 80"
@@ -64,6 +77,16 @@ const LoadingComponent = () => {
           fill="none"
         />
       </svg>
+      <span
+        style={{
+          fontSize: "13px",
+          color: "#888",
+          fontWeight: "400",
+          fontFamily: "Inter, system-ui, sans-serif",
+        }}
+      >
+        This may take a moment...
+      </span>
     </div>
   );
 };
