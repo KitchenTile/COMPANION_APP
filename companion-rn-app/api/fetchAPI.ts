@@ -12,6 +12,7 @@ interface userMessage {
 interface routeRequest {
   origin: string;
   destination: string;
+  model: string;
 }
 
 export const getGmailLogin = async () => {
