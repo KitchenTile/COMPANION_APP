@@ -71,7 +71,8 @@ export type Risk = {
   correction: string[];
   best_prevention: string;
   best_correction: string;
-  severity: number;
+  severity?: number;
+  probability: number;
 };
 
 export type Step = {
@@ -79,6 +80,8 @@ export type Step = {
   node_to: string;
   label: string;
   risks: Risk[];
+  preventions: string[];
+  probability?: number;
 };
 
 export type TravelData = {
@@ -92,4 +95,25 @@ export interface TreeNode {
   children?: TreeNode[];
   label?: string;
   severity?: number;
+  probability?: number;
+}
+
+export interface ConvertedTreeNode {
+  id: string;
+  data: {
+    label: string;
+    children: TreeNode[] | undefined;
+  };
+  position: {
+    y: number;
+    x: number;
+  };
+  type: string;
+  style: {
+    background: string;
+    border: string;
+    maxWidth: number;
+    fontSize: string;
+    borderRadius: number;
+  };
 }
