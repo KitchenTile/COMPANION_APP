@@ -80,13 +80,18 @@ export type Step = {
   node_to: string;
   label: string;
   risks: Risk[];
-  preventions: string[];
+  preventions: prevention[];
   probability?: number;
 };
 
 export type TravelData = {
   steps: Step[];
 };
+
+interface prevention {
+  label: string;
+  adjusted_probabilities: Record<string, number>;
+}
 
 export interface TreeNode {
   id: string;
@@ -96,6 +101,7 @@ export interface TreeNode {
   label?: string;
   severity?: number;
   probability?: number;
+  preventions?: prevention[];
 }
 
 export interface ConvertedTreeNode {
