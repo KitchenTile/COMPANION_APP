@@ -111,256 +111,192 @@ export default function App() {
     steps: [
       {
         node_from: "Start",
-        node_to: "Brent Cross West Stop SF",
-        label: "Walk to Brent Cross stop",
-        probability: 7,
+        node_to: "Hendon Town Hall Stop O",
+        label: "Walk to Hendon Town Hall",
+        probability: 0.23192412973106843,
         risks: [
           {
-            failure_mode: "Tripped On Pavement",
-            label: "Caught foot on crack",
-            severity: 4,
-            probability: 5,
+            failure_mode: "Overexertion",
+            label: "No rest breaks taken",
+            severity: 0,
+            probability: 0.3612340196861751,
           },
           {
-            failure_mode: "Too Fatigued To Continue",
-            label: "Needed rest mid-walk",
-            severity: 3,
-            probability: 7,
+            failure_mode: "Paced Too Fast",
+            label: "Walk speed above tolerance",
+            severity: 0,
+            probability: 0.3126672717874177,
           },
           {
-            failure_mode: "Lost En Route",
-            label: "Missed a turn",
-            severity: 2,
-            probability: 3,
+            failure_mode: "Stair Fall",
+            label: "Attempted stairs with cane",
+            severity: 0,
+            probability: 0.23192412973106843,
           },
           {
-            failure_mode: "Could Not Cross Curb",
-            label: "High curb without ramp",
-            severity: 3,
-            probability: 4,
+            failure_mode: "Took Taxi",
+            label: "Skipped walking; took taxi",
+            severity: 0,
+            probability: 0.04902798913059953,
           },
         ],
         preventions: [
           {
-            label: "Announce uneven pavement and curbs",
+            label: "Schedule micro-break reminders en route",
             adjusted_probabilities: {
-              "Brent Cross West Stop SF": 7,
-              "Tripped On Pavement": 3,
-              "Too Fatigued To Continue": 7,
-              "Lost En Route": 2,
-              "Could Not Cross Curb": 2,
+              Overexertion: 0.2768275251697194,
+              "Stair Fall": 0.2224371654923462,
+              "Hendon Town Hall Stop O": 0.11906203495714826,
+              "Paced Too Fast": 0.01913501034369505,
+              "Took Taxi": 0.0014871063123501468,
             },
           },
           {
-            label: "Route via dropped kerbs and crossings",
+            label: "Use pace-controlled voice guidance",
             adjusted_probabilities: {
-              "Brent Cross West Stop SF": 7,
-              "Tripped On Pavement": 2,
-              "Too Fatigued To Continue": 4,
-              "Lost En Route": 3,
-              "Could Not Cross Curb": 1,
+              Overexertion: 0.507738995336578,
+              "Hendon Town Hall Stop O": 0.181039903307718,
+              "Paced Too Fast": 0.1754698910522241,
+              "Stair Fall": 0.12442678457674884,
+              "Took Taxi": 0.0009500104500933835,
             },
           },
           {
-            label: "Suggest benches and rest reminders",
+            label: "Auto-reroute from stairs to ramp",
             adjusted_probabilities: {
-              "Brent Cross West Stop SF": 7,
-              "Tripped On Pavement": 5,
-              "Too Fatigued To Continue": 4,
-              "Lost En Route": 2,
-              "Could Not Cross Curb": 4,
+              "Stair Fall": 0.37111055720073066,
+              "Hendon Town Hall Stop O": 0.22508993108528214,
+              Overexertion: 0.18954472567369324,
+              "Paced Too Fast": 0.01416642738786465,
+              "Took Taxi": 0.0014471916666879117,
             },
           },
         ],
       },
       {
-        node_from: "Brent Cross West Stop SF",
-        node_to: "Etheridge Road Stop M",
-        label: "Bus 266 to Etheridge Road",
-        probability: 7,
+        node_from: "Hendon Town Hall Stop O",
+        node_to: "Hendon The Quadrant Stop S",
+        label: "Bus 143 towards Archway",
+        probability: 0.08867572885476568,
         risks: [
           {
-            failure_mode: "Missed Bus 266",
-            label: "Arrived as doors closed",
-            severity: 3,
-            probability: 5,
+            failure_mode: "Sudden fatigue",
+            label: "Felt tired; took rest stop",
+            severity: 0,
+            probability: 0.6808131927869799,
           },
           {
-            failure_mode: "Overcrowded Bus 266",
-            label: "Too crowded to board",
-            severity: 2,
-            probability: 4,
+            failure_mode: "Icy sidewalk detour",
+            label: "Slippery path; took detour",
+            severity: 0,
+            probability: 0.13204263183517653,
           },
           {
-            failure_mode: "Bus 266 Broke Down",
-            label: "Mechanical issue mid-route",
-            severity: 2,
-            probability: 1,
+            failure_mode: "Sudden crowd rush",
+            label: "Felt rush; slowed for balance",
+            severity: 0,
+            probability: 0.09453581255179402,
           },
           {
-            failure_mode: "Missed 266 Stop",
-            label: "Did not press bell",
-            severity: 2,
-            probability: 3,
+            failure_mode: "Urgent restroom need",
+            label: "Needed toilet; short detour",
+            severity: 0,
+            probability: 0.08867572885476568,
           },
         ],
         preventions: [
           {
-            label: "Remind user to leave earlier for 266",
+            label: "Prompt to request priority seat on boarding",
             adjusted_probabilities: {
-              "Etheridge Road Stop M": 7,
-              "Missed Bus 266": 3,
-              "Overcrowded Bus 266": 3,
-              "Bus 266 Broke Down": 1,
-              "Missed 266 Stop": 3,
+              "Sudden fatigue": 0.055646546331604554,
+              "Hendon The Quadrant Stop S": 0.03884755013617872,
+              "Icy sidewalk detour": 0.004496929258520812,
+              "Sudden crowd rush": 0.002261198035085713,
+              "Urgent restroom need": 0.0006580461435426548,
             },
           },
           {
-            label: "Show next bus with seating available",
+            label: "Notify crowding; suggest next less-crowded bus",
             adjusted_probabilities: {
-              "Etheridge Road Stop M": 7,
-              "Missed Bus 266": 3,
-              "Overcrowded Bus 266": 2,
-              "Bus 266 Broke Down": 1,
-              "Missed 266 Stop": 3,
+              "Hendon The Quadrant Stop S": 0.009530123431305215,
+              "Sudden fatigue": 0.001138210929348997,
+              "Sudden crowd rush": 0.0011205646045047023,
+              "Icy sidewalk detour": 0.00044572980427809574,
+              "Urgent restroom need": 0.0003581537887223813,
             },
           },
           {
-            label: "Send bell reminder one stop early",
+            label: "Show nearest restroom before boarding",
             adjusted_probabilities: {
-              "Etheridge Road Stop M": 7,
-              "Missed Bus 266": 5,
-              "Overcrowded Bus 266": 4,
-              "Bus 266 Broke Down": 1,
-              "Missed 266 Stop": 1,
+              "Urgent restroom need": 0.8384287067051246,
+              "Hendon The Quadrant Stop S": 0.03150920144222632,
+              "Sudden fatigue": 0.013134989351663434,
+              "Icy sidewalk detour": 0.005475478189590121,
+              "Sudden crowd rush": 0.0014737049622744632,
             },
           },
         ],
       },
       {
-        node_from: "Etheridge Road Stop M",
-        node_to: "Southbourne Crescent Stop TN",
-        label: "Bus 112 to Southbourne",
-        probability: 7,
-        risks: [
-          {
-            failure_mode: "Missed Bus 112",
-            label: "Arrived as doors closed",
-            severity: 3,
-            probability: 5,
-          },
-          {
-            failure_mode: "Overcrowded Bus 112",
-            label: "Too crowded to board",
-            severity: 2,
-            probability: 4,
-          },
-          {
-            failure_mode: "Bus 112 Broke Down",
-            label: "Mechanical issue mid-route",
-            severity: 2,
-            probability: 1,
-          },
-          {
-            failure_mode: "Missed Southbourne Stop",
-            label: "Did not press bell",
-            severity: 2,
-            probability: 3,
-          },
-        ],
-        preventions: [
-          {
-            label: "Remind user to leave earlier for 112",
-            adjusted_probabilities: {
-              "Southbourne Crescent Stop TN": 7,
-              "Missed Bus 112": 3,
-              "Overcrowded Bus 112": 4,
-              "Bus 112 Broke Down": 1,
-              "Missed Southbourne Stop": 3,
-            },
-          },
-          {
-            label: "Show next 112 with seating available",
-            adjusted_probabilities: {
-              "Southbourne Crescent Stop TN": 7,
-              "Missed Bus 112": 3,
-              "Overcrowded Bus 112": 2,
-              "Bus 112 Broke Down": 1,
-              "Missed Southbourne Stop": 3,
-            },
-          },
-          {
-            label: "Send bell reminder one stop early",
-            adjusted_probabilities: {
-              "Southbourne Crescent Stop TN": 7,
-              "Missed Bus 112": 5,
-              "Overcrowded Bus 112": 4,
-              "Bus 112 Broke Down": 1,
-              "Missed Southbourne Stop": 1,
-            },
-          },
-        ],
-      },
-      {
-        node_from: "Southbourne Crescent Stop TN",
+        node_from: "Hendon The Quadrant Stop S",
         node_to: "Destination",
         label: "Walk to destination",
-        probability: 6,
+        probability: 0.13873312624901266,
         risks: [
           {
-            failure_mode: "Tripped Near Destination",
-            label: "Caught foot on curb",
-            severity: 4,
-            probability: 5,
+            failure_mode: "Low-light anxiety",
+            label: "Poorly lit area on route",
+            severity: 0,
+            probability: 0.40140940540132275,
           },
           {
-            failure_mode: "Rest Needed Before Arrival",
-            label: "Exhausted after journey",
-            severity: 3,
-            probability: 7,
+            failure_mode: "Slip on ice",
+            label: "Icy patches on walkway",
+            severity: 0,
+            probability: 0.16076485823454462,
           },
           {
-            failure_mode: "At Wrong Address",
-            label: "Misread door numbers",
-            severity: 2,
-            probability: 3,
+            failure_mode: "Fall on stairs",
+            label: "No support on stairs",
+            severity: 0,
+            probability: 0.15137154804902483,
           },
           {
-            failure_mode: "Entrance Stairs Barrier",
-            label: "No handrail at steps",
-            severity: 3,
-            probability: 4,
+            failure_mode: "Walking fatigue",
+            label: "Too tired to continue",
+            severity: 0,
+            probability: 0.1477210620660951,
           },
         ],
         preventions: [
           {
-            label: "Announce curb and surface hazards ahead",
+            label: "Switch to well-lit route automatically",
             adjusted_probabilities: {
-              Destination: 6,
-              "Tripped Near Destination": 3,
-              "Rest Needed Before Arrival": 7,
-              "At Wrong Address": 3,
-              "Entrance Stairs Barrier": 4,
+              "Low-light anxiety": 0.36445813132833216,
+              "Walking fatigue": 0.3266981574837898,
+              Destination: 0.10120636790243712,
+              "Fall on stairs": 0.039632983126116565,
+              "Slip on ice": 0.018431044433928557,
             },
           },
           {
-            label: "Suggest nearby benches before final stretch",
+            label: "Announce slippery areas; suggest gritted detours",
             adjusted_probabilities: {
-              Destination: 6,
-              "Tripped Near Destination": 4,
-              "Rest Needed Before Arrival": 3,
-              "At Wrong Address": 3,
-              "Entrance Stairs Barrier": 4,
+              "Walking fatigue": 0.06229070917891739,
+              "Slip on ice": 0.05245403615528367,
+              Destination: 0.034400196766449266,
+              "Fall on stairs": 0.00911514688581598,
+              "Low-light anxiety": 0.0082994356850364,
             },
           },
           {
-            label: "Highlight step-free entrance and ramps",
+            label: "Auto-reroute to ramp or lift",
             adjusted_probabilities: {
-              Destination: 6,
-              "Tripped Near Destination": 5,
-              "Rest Needed Before Arrival": 7,
-              "At Wrong Address": 3,
-              "Entrance Stairs Barrier": 0,
+              "Walking fatigue": 0.6053699206541391,
+              Destination: 0.09139718783122378,
+              "Fall on stairs": 0.08585971215306847,
+              "Low-light anxiety": 0.07577093003188787,
+              "Slip on ice": 0.022397844135444316,
             },
           },
         ],
@@ -462,7 +398,20 @@ export default function App() {
 
       let currentProbability = d.data.probability;
 
-      if (d.data.type === "risk" && d.parent) {
+      // if (d.data.type === "risk" && d.parent) {
+      //   const stepPreventions = d.parent.data.preventions || [];
+
+      //   const activePrevention = stepPreventions.find(
+      //     (p: any) => p.label === selectedPrevention
+      //   );
+
+      //   if (activePrevention) {
+      //     currentProbability =
+      //       activePrevention.adjusted_probabilities[d.data.name] ??
+      //       currentProbability;
+      //   }
+      // }
+      if ((d.data.type === "risk" || d.data.type === "location") && d.parent) {
         const stepPreventions = d.parent.data.preventions || [];
 
         const activePrevention = stepPreventions.find(
@@ -470,6 +419,8 @@ export default function App() {
         );
 
         if (activePrevention) {
+          // Since d.data.name is the node_to string for locations (e.g. "Brent Cross..."),
+          // it will perfectly match the key in your JSON!
           currentProbability =
             activePrevention.adjusted_probabilities[d.data.name] ??
             currentProbability;
