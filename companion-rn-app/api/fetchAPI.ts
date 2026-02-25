@@ -13,6 +13,7 @@ interface routeRequest {
   origin: string;
   destination: string;
   model: string;
+  probabilityModel: string;
 }
 
 export const getGmailLogin = async () => {
