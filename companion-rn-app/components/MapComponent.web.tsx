@@ -119,6 +119,7 @@ export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [model, setModel] = useState<string>("gpt-5");
+  const [probability_model, setProbability_model] = useState<string>("gpt-5");
 
   const modelOptions = [
     "gpt-5",
@@ -147,6 +148,7 @@ export default function App() {
       origin,
       destination,
       model,
+      probability_model,
     });
     setTravelData(data);
     if (data) setLoading(false);
@@ -203,19 +205,6 @@ export default function App() {
 
       let currentProbability = d.data.probability;
 
-      // if (d.data.type === "risk" && d.parent) {
-      //   const stepPreventions = d.parent.data.preventions || [];
-
-      //   const activePrevention = stepPreventions.find(
-      //     (p: any) => p.label === selectedPrevention
-      //   );
-
-      //   if (activePrevention) {
-      //     currentProbability =
-      //       activePrevention.adjusted_probabilities[d.data.name] ??
-      //       currentProbability;
-      //   }
-      // }
       if ((d.data.type === "risk" || d.data.type === "location") && d.parent) {
         const stepPreventions = d.parent.data.preventions || [];
 
@@ -347,6 +336,19 @@ export default function App() {
             ))}
           </select>
         </label>
+        <label style={styles.label}>
+          Prevention Model:
+          <select
+            style={styles.input}
+            value={probability_model}
+            onChange={(e) => setProbability_model(e.target.value)}
+            name="probabilityModel"
+          >
+            {modelOptions.map((model) => (
+              <option value={model}>{model}</option>
+            ))}
+          </select>
+        </label>
         <button style={styles.button} onClick={getTravelData}>
           Generate Route Graph
         </button>
@@ -357,6 +359,7 @@ export default function App() {
     </div>
   );
 }
+
 const styles = {
   container: {
     width: 320,
