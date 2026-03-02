@@ -17,10 +17,16 @@ import React from "react";
 export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { colors } = useTheme();
   const { buildHref } = useLinkBuilder();
+  let isWeb = false;
 
   const [dimensions, setDimensions] = useState({ width: 100, height: 20 });
 
-  const buttonWidth = dimensions.width / state.routes.length;
+  let buttonWidth = dimensions.width / state.routes.length;
+
+  if (Platform.OS === "web") {
+    isWeb = true;
+    buttonWidth = 300 / state.routes.length;
+  }
 
   const onTabBarLayout = (e: LayoutChangeEvent) => {
     setDimensions({
@@ -38,7 +44,10 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   });
 
   return (
-    <View onLayout={onTabBarLayout} style={styles.tabbar}>
+    <View
+      onLayout={onTabBarLayout}
+      style={[styles.tabbar, isWeb && styles.webTabBar]}
+    >
       <Animated.View
         style={[
           {
@@ -116,5 +125,11 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOpacity: 0.1,
     boxShadow: "rgba(0, 0, 0, 0.3) 0px 10px 20px 0px",
+  },
+
+  webTabBar: {
+    left: "50%",
+    width: 300,
+    transform: "translateX(-75%)",
   },
 });
