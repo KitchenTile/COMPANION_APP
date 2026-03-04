@@ -16,6 +16,8 @@ import transformDataForD3 from "@/utils/mapDataTransformer";
 import { TreeNode } from "@/utils/types";
 import LoadingComponent from "./LoadingComponent.web";
 import NodeModal from "./NodeModal";
+import { LinearGradient } from "expo-linear-gradient";
+import { HeaderHeightContext } from "@react-navigation/elements";
 
 const CustomNode = ({ data, isConnectable }: any) => {
   const isPrevention = data.type === "prevention";
@@ -299,7 +301,6 @@ export default function App() {
       >
         <Background />
         <Controls />
-        <Panel position="top-right">{travelData && travelData.id}</Panel>
       </ReactFlow>
 
       <div style={styles.container}>
@@ -352,6 +353,28 @@ export default function App() {
         <button style={styles.button} onClick={getTravelData}>
           Generate Route Graph
         </button>
+      </div>
+      <div style={styles.gradiantContainer}>
+        <label style={styles.label}>Probability color chart</label>
+        <div style={{ borderRadius: 7, overflow: "hidden" }}>
+          <LinearGradient
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            colors={[
+              "#002fffff",
+              "#00eeffff",
+              "#00ff2aff",
+              "#cdcd00ff",
+              "#ff0000ff",
+            ]}
+            style={styles.gradient}
+          />
+        </div>
+        <div style={styles.rankingContainer}>
+          <label style={styles.label}>Low</label>
+          <label style={styles.label}>Medium</label>
+          <label style={styles.label}>High</label>
+        </div>
       </div>
       {selectedNode && (
         <NodeModal selectedNode={selectedNode} onClose={closeModal} />
@@ -409,5 +432,30 @@ const styles = {
     fontWeight: "600",
     cursor: "pointer",
     transition: "background-color 0.2s ease",
+  },
+  gradiantContainer: {
+    position: "absolute" as const,
+    right: 20,
+    top: 20,
+    borderRadius: "12px",
+    backgroundColor: "#ffffff",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+    border: "1px solid #e0e0e0",
+    display: "flex",
+    flexDirection: "column" as const,
+    padding: "20px",
+    paddingBottom: "10px",
+    gap: "12px",
+    zIndex: 5,
+  },
+  gradient: {
+    width: 250,
+    height: 30,
+    borderRadious: "10px",
+  },
+  rankingContainer: {
+    width: 250,
+    display: "flex",
+    justifyContent: "space-between",
   },
 };
