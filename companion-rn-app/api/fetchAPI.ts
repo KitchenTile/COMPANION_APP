@@ -40,7 +40,7 @@ export const calculateRouteGraph = async (routeRequest: routeRequest) => {
   try {
     console.log(routeRequest);
     // const res = await fetch(`${baseURL + "/anticip8/demo"}`, {
-    const res = await fetch(`http://34.227.7.88:8000/anticip8/demo`, {
+    const res = await fetch(`${baseURL}/anticip8/demo`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
