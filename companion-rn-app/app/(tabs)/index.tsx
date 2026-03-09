@@ -48,15 +48,6 @@ export default function HomeScreen() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
-  const openGoogleLink = async () => {
-    // if there's no user id, retrurn
-    if (!user?.id) return;
-    await WebBrowser.openAuthSessionAsync(
-      `http://localhost:8000/gmailLogin?user_id=${user.id}`,
-      "aicompanion://auth"
-    );
-  };
-
   useEffect(() => {
     if (!user) return;
     console.log("user id");
