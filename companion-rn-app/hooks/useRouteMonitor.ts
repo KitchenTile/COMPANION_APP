@@ -9,11 +9,25 @@ export const useRouteMonitor = (
   onDerail: (polyline: DecodedPoint[]) => void
 ) => {
   // const [polyline, setPolyline] = useState<DecodedPoint[] | null>(null);
+  const polylines = useAuthStore((state) => state.polylines);
+  const [currentPolylineIndex, setCurrentPolylineIndex] = useState(0);
   const setPolyline = useAuthStore((state) => state.setPolyline);
+  const setPolylines = useAuthStore((state) => state.setPolylines);
   const polyline = useAuthStore((state) => state.polyline);
   const [isDerailed, setIsDerailed] = useState<boolean>(false);
 
   const derailTriggeredRef = useRef(false);
+
+  useEffect(() => {
+    if (!location || !polylines || polylines.length === 0) return;
+    const activeIndex = polylines.findIndex((stepPolyline) =>
+      isUserOnTrack(location, stepPolyline)
+    );
+
+    if (activeIndex !== -1 && activeIndex !== currentPolylineIndex) {
+      setCurrentPolylineIndex(activeIndex);
+    }
+  }, [location, polylines]);
 
   //decode and set polyline, reset state and ref
   const setPolylineFunction = (polyline: string) => {
@@ -21,6 +35,22 @@ export const useRouteMonitor = (
     const decodedPolyline = decodePolyline(polyline);
     setPolyline(decodedPolyline);
     setIsDerailed(false);
+    // console.log(decodedPolyline);
+
+    derailTriggeredRef.current = false;
+  };
+
+  const setIndividualPolylinesFunction = (polylines: string[]) => {
+    const decodedPolylines: DecodedPoint[][] = [];
+    const decodePolyline = require("decode-google-map-polyline");
+
+    polylines.forEach((polyline) => {
+      decodedPolylines.push(decodePolyline(polyline));
+    });
+
+    setPolylines(decodedPolylines);
+    setIsDerailed(false);
+    console.log(decodedPolylines);
 
     derailTriggeredRef.current = false;
   };
@@ -50,6 +80,8 @@ export const useRouteMonitor = (
     polyline,
     resetDerail,
     setPolylineFunction,
+    setIndividualPolylinesFunction,
+    currentPolylineIndex,
     isDerailed,
   };
 };
