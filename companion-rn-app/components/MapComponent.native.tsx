@@ -80,23 +80,22 @@ export default function App() {
       }))
     );
 
+  if (!location) return;
   return (
     <View style={styles.container}>
       <MapView
         style={styles.map}
         initialRegion={{
-          latitude: location ? location.coords.latitude : 51.589406650777185,
-          longitude: location ? location.coords.longitude : -0.2282378655814923,
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
           latitudeDelta: 0.0422,
           longitudeDelta: 0.0121,
         }}
       >
         <Marker
           coordinate={{
-            latitude: location ? location.coords.latitude : 51.589406650777185,
-            longitude: location
-              ? location.coords.longitude
-              : -0.2282378655814923,
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
           }}
           anchor={{ x: 0.5, y: 1 }}
           centerOffset={{ x: 0.5, y: -30 }}
