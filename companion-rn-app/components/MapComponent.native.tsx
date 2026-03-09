@@ -13,16 +13,13 @@ import {
 } from "@expo/vector-icons";
 import { useRouteMonitor } from "@/hooks/useRouteMonitor";
 import { ThemedView } from "@/components/ThemedView";
+import { colours } from "@/constants/Colors";
 
 export default function App() {
   //TODO:
   // this file is a placeholder for what it will look like/what functionality it will have in the future.
-  // Need to fix global state polyline,
-  // Need to get the step polylines together into an array of arrays of decodedPoints to replace the placeholder
-  // Need to get rid of user marker in the middle of the polyline for the actual user's location (uncomment the user's location)
   // Need to create components for info pannel
   // Need to place the actual user's location in relation to the route line
-  // Need to add more colours for potential extra polylines
   // General fixes and improvements in style
 
   const user = useAuthStore((state) => state.user);
@@ -34,7 +31,10 @@ export default function App() {
   //location
   const location = useLocationTracker();
 
-  const { currentPolylineIndex } = useRouteMonitor(location, handleDerail);
+  const { currentPolylineIndex, isDerailed } = useRouteMonitor(
+    location,
+    handleDerail
+  );
 
   useEffect(() => {
     console.log(" -- NEW POLYLINES: --");
@@ -59,15 +59,6 @@ export default function App() {
   };
 
   const polylinePercentages = calculateRouteLengths(polylines);
-
-  const colours = [
-    "rgba(245, 238, 5, $)",
-    "rgba(236, 61, 122, $)",
-    "rgba(114, 63, 235, $)",
-    "rgba(0, 255, 255, $)",
-    "rgba(0, 255, 127, $)",
-    "rgba(255, 128, 0, $)",
-  ];
 
   const mapCoordinates: { latitude: number; longitude: number }[][] = (
     polylines || []
@@ -281,7 +272,8 @@ export default function App() {
               </View>
               <View style={[styles.warningContainer, styles.shadow]}>
                 <ThemedText style={{ fontWeight: 600, fontSize: 17 }}>
-                  Get ready, getting off in 5 stops
+                  {/* Get ready, getting off in 5 stops */}
+                  Is user on track? {isDerailed}
                 </ThemedText>
                 <AntDesign name="sound" size={20} color="black" />
               </View>
