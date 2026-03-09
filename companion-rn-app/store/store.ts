@@ -8,10 +8,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   isLoading: false,
   user: null,
   polyline: null,
+  polylines: null,
   error: null,
   session: null,
 
-  setPolyline: (polyline: any) => set(polyline),
+  setPolyline: (polyline: any) => set({ polyline: polyline }),
+  setPolylines: (polylines: any) => set({ polylines: polylines }),
 
   login: async (email: string, password: string) => {
     set({ isLoading: true, error: null });
