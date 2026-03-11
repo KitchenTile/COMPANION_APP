@@ -1,14 +1,19 @@
 import { TravelData, TreeNode } from "./types";
 
 const transformDataForD3 = (data: TravelData): TreeNode => {
+  // Guard clause in case empty data is passed
+  if (!data || !data.steps || data.steps.length === 0) {
+    throw new Error("Invalid or empty data provided");
+  }
+
   const buildStepChildren = (stepIndex: number): TreeNode[] => {
     if (stepIndex >= data.steps.length) return [];
 
     const currentStep = data.steps[stepIndex];
 
-    const riskNodes = currentStep.risks.map((risk) => {
+    const riskNodes: TreeNode[] = currentStep.risks.map((risk) => {
       return {
-        id: `${currentStep.node_to}-${risk.failure_mode}`,
+        id: `${currentStep.node_to}-${risk.failure_mode.replace(/\s+/g, "-")}`,
         name: risk.failure_mode,
         type: "risk",
         severity: risk.severity,
@@ -17,14 +22,18 @@ const transformDataForD3 = (data: TravelData): TreeNode => {
       };
     });
 
-    const preventionNodes = currentStep.preventions.map((prevention, index) => {
-      return {
-        id: `${currentStep.node_to}-${index}`,
-        name: prevention.label,
-        type: "prevention",
-        children: [],
-      };
-    });
+    const preventionNodes: TreeNode[] = currentStep.preventions.map(
+      (prevention, index) => {
+        return {
+          // Appending 'prev' to ensure unique IDs across the graph
+          id: `${currentStep.node_to}-prev-${index}`,
+          name: prevention.label.label,
+          action_text: prevention.label.action_text,
+          action_voice: prevention.label.action_voice,
+          type: "prevention",
+        };
+      }
+    );
 
     const nextLocationNode: TreeNode = {
       id: currentStep.node_to,
