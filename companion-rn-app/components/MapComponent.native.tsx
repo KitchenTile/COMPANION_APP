@@ -28,6 +28,7 @@ export default function App() {
   const handleDerail = () => {
     return;
   };
+
   //location
   const location = useLocationTracker();
 
@@ -273,7 +274,7 @@ export default function App() {
               <View style={[styles.warningContainer, styles.shadow]}>
                 <ThemedText style={{ fontWeight: 600, fontSize: 17 }}>
                   {/* Get ready, getting off in 5 stops */}
-                  Is user on track? {isDerailed}
+                  Is user on track? {!isDerailed}
                 </ThemedText>
                 <AntDesign name="sound" size={20} color="black" />
               </View>
@@ -360,6 +361,7 @@ const styles = StyleSheet.create({
   warningContainer: {
     alignItems: "center",
     flexDirection: "row",
+    justifyContent: "space-between",
     borderRadius: 15,
     borderStyle: "solid",
     borderWidth: 2,
@@ -368,7 +370,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingLeft: 10,
     paddingRight: 10,
-    gap: 60,
   },
 
   shadow: {
