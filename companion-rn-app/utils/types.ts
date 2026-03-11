@@ -23,10 +23,12 @@ export interface AuthStore {
   isLoading: boolean;
   user: User | null;
   polyline: DecodedPoint[] | null;
+  polylines: DecodedPoint[][] | null;
   session: Session | null;
   error: any;
 
   setPolyline: (polyline: DecodedPoint[]) => void;
+  setPolylines: (polylines: DecodedPoint[][]) => void;
   login: (email: string, password: string) => Promise<void>;
   signUp: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -62,6 +64,8 @@ export interface packetInterface {
   sender: string;
   receiver: string;
   polyline?: string;
+  individualPolylines?: string[];
+  graph?: any;
 }
 
 export type Risk = {
