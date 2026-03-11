@@ -164,6 +164,9 @@ const ChatPage = () => {
       setAudioUri(packet.content.audio_url);
     }
 
+    console.log("-- PACKET ARRIVED --");
+    console.log(packet);
+
     if (packet.performative === "INFORM") {
       setPendingToolId(null);
       setTaskId(null);
