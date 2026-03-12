@@ -17,7 +17,6 @@ import { TreeNode } from "@/utils/types";
 import LoadingComponent from "./LoadingComponent.web";
 import NodeModal from "./NodeModal";
 import { LinearGradient } from "expo-linear-gradient";
-import { HeaderHeightContext } from "@react-navigation/elements";
 
 const CustomNode = ({ data, isConnectable }: any) => {
   const isPrevention = data.type === "prevention";
@@ -211,12 +210,10 @@ export default function App() {
         const stepPreventions = d.parent.data.preventions || [];
 
         const activePrevention = stepPreventions.find(
-          (p: any) => p.label === selectedPrevention
+          (p: any) => p.label.label === selectedPrevention
         );
 
         if (activePrevention) {
-          // Since d.data.name is the node_to string for locations (e.g. "Brent Cross..."),
-          // it will perfectly match the key in your JSON!
           currentProbability =
             activePrevention.adjusted_probabilities[d.data.name] ??
             currentProbability;
@@ -232,7 +229,7 @@ export default function App() {
           label: d.data.name,
           type: d.data.type,
           severity: d.data.severity,
-          probability: currentProbability, // Use the dynamically calculated probability
+          probability: currentProbability,
           style: {
             background:
               d.data.name === "Start" || d.data.name === "Destination"
