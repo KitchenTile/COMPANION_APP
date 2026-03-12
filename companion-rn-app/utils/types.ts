@@ -26,6 +26,7 @@ export interface AuthStore {
   polylines: DecodedPoint[][] | null;
   session: Session | null;
   error: any;
+  graph: any;
 
   setPolyline: (polyline: DecodedPoint[]) => void;
   setPolylines: (polylines: DecodedPoint[][]) => void;
@@ -92,8 +93,15 @@ export type TravelData = {
   steps: Step[];
 };
 
-interface prevention {
+interface label {
   label: string;
+  action_text: string;
+  action_voice: string;
+  trigger_timing: string;
+}
+
+interface prevention {
+  label: label;
   adjusted_probabilities: Record<string, number>;
 }
 
