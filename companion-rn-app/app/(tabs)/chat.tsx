@@ -180,6 +180,9 @@ const ChatPage = () => {
         setIndividualPolylinesFunction(packet.individualPolylines);
       }
 
+      if (packet.graph) {
+      }
+
       //and add bot message to ui before fetching
       const modelMesage = {
         role: "assistant",
