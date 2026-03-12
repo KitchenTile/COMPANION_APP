@@ -15,8 +15,41 @@ export const useRouteMonitor = (
   const setPolylines = useAuthStore((state) => state.setPolylines);
   const polyline = useAuthStore((state) => state.polyline);
   const [isDerailed, setIsDerailed] = useState<boolean>(false);
+  const [currentActionText, setCurrentActionText] = useState<string>("");
 
   const derailTriggeredRef = useRef(false);
+
+  const routeGraph = useAuthStore((state) => state.graph);
+  const previouslyTriggeredSteps = useRef<Set<number>>(new Set());
+
+  useEffect(() => {
+    if (!routeGraph || !routeGraph.steps || routeGraph.steps.length === 0)
+      return;
+    const activePhysicalStep = currentPolylineIndex + 1;
+
+    // 2. Find which logical graph step contains this physical step
+    const currentLogicalStepIndex = routeGraph.steps.findIndex((step: any) =>
+      step.mapped_raw_steps.includes(activePhysicalStep)
+    );
+
+    if (currentLogicalStepIndex === -1) return;
+
+    const currentLogicalStep = routeGraph.steps[currentLogicalStepIndex];
+    const prevention = currentLogicalStep.active_prevention;
+
+    if (
+      prevention &&
+      !previouslyTriggeredSteps.current.has(currentLogicalStepIndex)
+    ) {
+      setCurrentActionText(prevention.action_text);
+      console.log("FIRING PREVENTION FOR NODE:", currentLogicalStep.node_to);
+      console.log("ACTION VOICE:", prevention.action_voice);
+      console.log("ACTION TEXT:", prevention.action_text);
+      // TODO: Execute your TTS or UI Modal here based on action_type
+
+      previouslyTriggeredSteps.current.add(currentLogicalStepIndex);
+    }
+  }, [currentPolylineIndex, routeGraph]);
 
   useEffect(() => {
     if (!location || !polylines || polylines.length === 0) return;
@@ -83,5 +116,6 @@ export const useRouteMonitor = (
     setIndividualPolylinesFunction,
     currentPolylineIndex,
     isDerailed,
+    currentActionText,
   };
 };
