@@ -4,32 +4,44 @@
     "slug": "ai-companion",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/MDXSU_Logo_Black_Small.png",
+    "icon": "./assets/images/SafeStepLogo.png",
     "scheme": "aicompanion",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.blue.aicompanion"
+      "bundleIdentifier": "com.blue.aicompanion",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/MDXSU_Logo_Black_Small.png",
+        "foregroundImage": "./assets/images/SafeStepLogo.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/MDXSU_Logo_Black_Small.png"
+      "favicon": "./assets/images/SafeStepLogo.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/MDXSU_Logo_Black_Small.png",
+          "image": "./assets/images/SafeStepLogo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
@@ -49,10 +61,17 @@
         {
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone to create voice recordings."
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "4e735224-5b57-43a1-992d-f04e5bfb4561"
+      }
     }
   }
 }
