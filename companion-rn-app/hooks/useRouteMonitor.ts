@@ -6,7 +6,8 @@ import { useAuthStore } from "@/store/store";
 
 export const useRouteMonitor = (
   location: Location.LocationObject | null,
-  onDerail: (polyline: DecodedPoint[]) => void
+  onDerail?: (polyline: DecodedPoint[]) => void,
+  onIntervention?: (audioUrl: string) => void
 ) => {
   // const [polyline, setPolyline] = useState<DecodedPoint[] | null>(null);
   const polylines = useAuthStore((state) => state.polylines);
@@ -16,6 +17,7 @@ export const useRouteMonitor = (
   const polyline = useAuthStore((state) => state.polyline);
   const [isDerailed, setIsDerailed] = useState<boolean>(false);
   const [currentActionText, setCurrentActionText] = useState<string>("");
+  const [currentActionVoice, setCurrentActionVoice] = useState<string>("");
 
   const derailTriggeredRef = useRef(false);
 
@@ -23,11 +25,15 @@ export const useRouteMonitor = (
   const previouslyTriggeredSteps = useRef<Set<number>>(new Set());
 
   useEffect(() => {
+    console.log("--- GRAPH ---");
+    console.log(routeGraph);
+  }, [routeGraph]);
+
+  useEffect(() => {
     if (!routeGraph || !routeGraph.steps || routeGraph.steps.length === 0)
       return;
     const activePhysicalStep = currentPolylineIndex + 1;
 
-    // 2. Find which logical graph step contains this physical step
     const currentLogicalStepIndex = routeGraph.steps.findIndex((step: any) =>
       step.mapped_raw_steps.includes(activePhysicalStep)
     );
@@ -35,17 +41,21 @@ export const useRouteMonitor = (
     if (currentLogicalStepIndex === -1) return;
 
     const currentLogicalStep = routeGraph.steps[currentLogicalStepIndex];
-    const prevention = currentLogicalStep.active_prevention;
+    const prevention = currentLogicalStep.best_prevention;
 
     if (
-      prevention &&
-      !previouslyTriggeredSteps.current.has(currentLogicalStepIndex)
+      prevention
+      // !previouslyTriggeredSteps.current.has(currentLogicalStepIndex)
     ) {
-      setCurrentActionText(prevention.action_text);
+      setCurrentActionText(prevention.label.action_text);
+      setCurrentActionVoice(prevention.audio_url.signedURL);
       console.log("FIRING PREVENTION FOR NODE:", currentLogicalStep.node_to);
-      console.log("ACTION VOICE:", prevention.action_voice);
-      console.log("ACTION TEXT:", prevention.action_text);
-      // TODO: Execute your TTS or UI Modal here based on action_type
+      console.log("ACTION VOICE:", prevention.label.action_voice);
+      console.log("ACTION TEXT:", prevention.label.action_text);
+
+      if (prevention.audio_url.signedURL && onIntervention) {
+        onIntervention(prevention.audio_url.signedURL);
+      }
 
       previouslyTriggeredSteps.current.add(currentLogicalStepIndex);
     }
@@ -101,7 +111,7 @@ export const useRouteMonitor = (
       setIsDerailed(true);
       console.log("USER DERAILED, ASKING FOR NEW DIRECTIONS");
       derailTriggeredRef.current = true;
-      onDerail(polyline);
+      onDerail && onDerail(polyline);
     }
   }, [location, polyline, onDerail]);
 
@@ -117,5 +127,6 @@ export const useRouteMonitor = (
     currentPolylineIndex,
     isDerailed,
     currentActionText,
+    currentActionVoice,
   };
 };
