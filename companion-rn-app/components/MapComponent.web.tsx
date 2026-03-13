@@ -17,6 +17,7 @@ import { TreeNode } from "@/utils/types";
 import LoadingComponent from "./LoadingComponent.web";
 import NodeModal from "./NodeModal";
 import { LinearGradient } from "expo-linear-gradient";
+import { useAuthStore } from "@/store/store";
 
 const CustomNode = ({ data, isConnectable }: any) => {
   const isPrevention = data.type === "prevention";
@@ -104,6 +105,7 @@ const getEdgeColor = (probability: number | undefined) => {
 };
 
 export default function App() {
+  const user = useAuthStore((state) => state.user);
   const [selectedNode, setSelectedNode] = useState(null);
   const [selectedPrevention, setSelectedPrevention] = useState<string | null>(
     null
@@ -143,13 +145,14 @@ export default function App() {
   const closeModal = () => setSelectedNode(null);
 
   const getTravelData = async () => {
-    if (origin === "" || destination === "") return;
+    if (origin === "" || destination === "" || !user) return;
     setLoading(true);
     const data = await calculateRouteGraph({
       origin,
       destination,
       model,
       probability_model,
+      userId: user.id,
     });
     setTravelData(data);
     if (data) setLoading(false);
