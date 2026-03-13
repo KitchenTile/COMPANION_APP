@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import MapView, { Circle, Marker, Polyline } from "react-native-maps";
-import { Platform, StyleSheet, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useAuthStore } from "@/store/store";
 import { useLocationTracker } from "@/hooks/useLocationTracker";
 import { ThemedText } from "@/components/ThemedText";
@@ -14,10 +14,11 @@ import {
 import { useRouteMonitor } from "@/hooks/useRouteMonitor";
 import { ThemedView } from "@/components/ThemedView";
 import { colours } from "@/constants/Colors";
+import { useAudioPlayer } from "expo-audio";
+import { Dimensions } from "react-native";
 
 export default function App() {
   //TODO:
-  // this file is a placeholder for what it will look like/what functionality it will have in the future.
   // Need to create components for info pannel
   // Need to place the actual user's location in relation to the route line
   // General fixes and improvements in style
@@ -25,22 +26,24 @@ export default function App() {
   const user = useAuthStore((state) => state.user);
 
   const polylines = useAuthStore((state) => state.polylines);
-  const handleDerail = () => {
-    return;
-  };
+
+  const screenWidth = Dimensions.get("window").width;
 
   //location
   const location = useLocationTracker();
 
-  const { currentPolylineIndex, isDerailed } = useRouteMonitor(
-    location,
-    handleDerail
-  );
+  const { currentPolylineIndex, currentActionText, currentActionVoice } =
+    useRouteMonitor(location);
+
+  // useEffect(() => {
+  //   console.log(" -- NEW POLYLINES: --");
+  //   console.log(polylines);
+  // }, [polylines]);
 
   useEffect(() => {
-    console.log(" -- NEW POLYLINES: --");
-    console.log(polylines);
-  }, [polylines]);
+    console.log(" -- NEW AUDIO FILE: --");
+    console.log(currentActionVoice);
+  }, [currentActionVoice]);
 
   const calculateRouteLengths = (
     polylines: { lat: number; lng: number }[][] | null
@@ -71,6 +74,23 @@ export default function App() {
         longitude: point.lng,
       }))
     );
+
+  const player = useAudioPlayer(currentActionVoice);
+
+  const playStepAudio = () => {
+    if (!currentActionVoice || !player) return;
+
+    console.log(`Commanding play for: ${currentActionVoice}`);
+
+    if (!player.isLoaded) {
+      console.log("Track is still buffering. Queuing play...");
+      player.play();
+      return;
+    }
+
+    player.seekTo(0);
+    player.play();
+  };
 
   if (!location) return;
   return (
@@ -174,6 +194,7 @@ export default function App() {
                 shadowRadius: 10,
                 shadowOpacity: 0.1,
                 boxShadow: "rgba(0, 0, 0, 0.15) 0px 5px 50px 0px",
+                width: screenWidth * 0.95,
               },
             ]}
           >
@@ -273,10 +294,11 @@ export default function App() {
               </View>
               <View style={[styles.warningContainer, styles.shadow]}>
                 <ThemedText style={{ fontWeight: 600, fontSize: 17 }}>
-                  {/* Get ready, getting off in 5 stops */}
-                  Is user on track? {!isDerailed}
+                  {currentActionText}
                 </ThemedText>
-                <AntDesign name="sound" size={20} color="black" />
+                <TouchableOpacity onPress={playStepAudio}>
+                  <AntDesign name="sound" size={24} color="black" />
+                </TouchableOpacity>
               </View>
             </View>
           </ThemedView>
@@ -312,10 +334,11 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
     borderWidth: 2,
     borderColor: "#733feb48",
-    transform: "translateX(5%)",
     padding: 10,
     backgroundColor: "white",
+    alignSelf: "center",
   },
+
   routeTracker: {
     height: 70,
     width: "100%",
