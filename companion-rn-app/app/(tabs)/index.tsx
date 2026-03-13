@@ -11,7 +11,6 @@ import {
 } from "react-native";
 import * as Linking from "expo-linking";
 
-import { HelloWave } from "@/components/HelloWave";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -19,9 +18,7 @@ import { useEffect, useState } from "react";
 import React from "react";
 import * as WebBrowser from "expo-web-browser";
 import { useAuthStore } from "@/store/store";
-import { ScrollView } from "react-native";
 import {
-  Entypo,
   FontAwesome6,
   Ionicons,
   MaterialCommunityIcons,
@@ -32,9 +29,7 @@ WebBrowser.maybeCompleteAuthSession();
 export default function HomeScreen() {
   //TODO:
   // huge file
-  // currently not connected to any real data
   // implement device vitals
-  //
 
   // imports from store
   const login = useAuthStore((state) => state.login);
@@ -72,9 +67,13 @@ export default function HomeScreen() {
     // if the input fields are empty, return
     if (email === "" || password === "" || name === "") return;
     // sign up and log in
-    await signUp(email, password, name);
+    await signUp(name, email, password);
     await login(email, password);
   };
+
+  useEffect(() => {
+    console.log(password);
+  }, [password]);
 
   const logInFunction = async () => {
     // if the input fields are empty, return
