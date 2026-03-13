@@ -30,6 +30,7 @@ export interface AuthStore {
 
   setPolyline: (polyline: DecodedPoint[]) => void;
   setPolylines: (polylines: DecodedPoint[][]) => void;
+  setGraph: (graph: any) => void;
   login: (email: string, password: string) => Promise<void>;
   signUp: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
