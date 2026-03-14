@@ -88,3 +88,26 @@ export const isUserOnTrack = (
 
   return minDistance < 20;
 };
+
+export const isUserOnDestination = (
+  userLocation: Location.LocationObject,
+  lastCoord: coordsInterface
+) => {
+  const userLat = userLocation.coords.latitude;
+  const userLng = userLocation.coords.longitude;
+
+  const R = 6371e3; // metres
+  const φ1 = (userLat * Math.PI) / 180; // φ, λ in radians
+  const φ2 = (lastCoord.lat * Math.PI) / 180;
+  const Δφ = ((lastCoord.lat - userLat) * Math.PI) / 180;
+  const Δλ = ((lastCoord.lng - userLng) * Math.PI) / 180;
+
+  const a =
+    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  const d = R * c; // in metres
+
+  return d < 5;
+};
