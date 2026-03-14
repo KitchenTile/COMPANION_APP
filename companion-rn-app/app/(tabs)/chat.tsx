@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   fetchChat,
   getChatMessages,
@@ -49,8 +49,6 @@ const ChatPage = () => {
 
   const [chatVisible, setChatVisible] = useState<boolean>(false);
 
-  const [isTalking, setIsTalking] = useState<boolean>(false);
-
   const [messages, setMessages] = useState<messageInterface[]>([]);
   const [chats, setChats] = useState<Chat[] | null>(null);
   const [chatId, setChatId] = useState<string | null>(null);
@@ -61,15 +59,17 @@ const ChatPage = () => {
   const [loadingMessage, setLoadingMessage] = useState<boolean>(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
+  const [audioUri, setAudioUri] = useState<string | null>(null);
+  const setGraph = useAuthStore((state) => state.setGraph);
+
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const recorderState = useAudioRecorderState(audioRecorder);
-
-  const [audioUri, setAudioUri] = useState<string | null>(null);
   const player = useAudioPlayer(audioUri);
 
   //location manager hook
   const location = useLocationTracker();
 
+  //chat and message setters
   useEffect(() => {
     if (!user) return;
 
@@ -92,11 +92,17 @@ const ChatPage = () => {
     fetchUserChats(user.id);
   }, [user]);
 
+  //play audio when it arrives
   useEffect(() => {
     console.log("AUDIO URI CHANGED:");
     console.log(audioUri);
     player.play();
   }, [audioUri]);
+
+  // useEffect(() => {
+  //   setIndividualPolylinesFunction();
+  //   setGraph()
+  // }, []);
 
   //fetch data when chat id changes
   useEffect(() => {
@@ -129,10 +135,10 @@ const ChatPage = () => {
     })();
   }, []);
 
-  useEffect(() => {
-    console.log("Recording state changed:", recorderState.isRecording);
-    recorderState.isRecording === false && console.log(recorderState);
-  }, [recorderState.isRecording]);
+  // useEffect(() => {
+  //   console.log("Recording state changed:", recorderState.isRecording);
+  //   recorderState.isRecording === false && console.log(recorderState);
+  // }, [recorderState.isRecording]);
 
   // record audio function
   const record = async () => {
@@ -181,6 +187,7 @@ const ChatPage = () => {
       }
 
       if (packet.graph) {
+        setGraph(packet.graph);
       }
 
       //and add bot message to ui before fetching
@@ -237,14 +244,25 @@ const ChatPage = () => {
   };
 
   // hook handles polyline state
-  const { isDerailed, setPolylineFunction, setIndividualPolylinesFunction } =
+  const { setPolylineFunction, setIndividualPolylinesFunction, userArrived } =
     useRouteMonitor(location, handleDerail);
+
+  //reset state when user arrvies to destination
+  useEffect(() => {
+    if (userArrived) {
+      setTaskId(null);
+      setPendingToolId(null);
+      setGraph(null);
+      setAudioUri(null);
+    }
+  }, [userArrived]);
 
   //send HTTP request to backend with user message
   const sendMessage = async (messageType: string) => {
     try {
       console.log(messageType);
-      if (!user || !chatId) return;
+
+      if (!user) return;
 
       const message = userInput;
 
