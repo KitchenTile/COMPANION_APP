@@ -28,8 +28,8 @@ export interface AuthStore {
   error: any;
   graph: any;
 
-  setPolyline: (polyline: DecodedPoint[]) => void;
-  setPolylines: (polylines: DecodedPoint[][]) => void;
+  setPolyline: (polyline: DecodedPoint[] | null) => void;
+  setPolylines: (polylines: DecodedPoint[][] | null) => void;
   setGraph: (graph: any) => void;
   login: (email: string, password: string) => Promise<void>;
   signUp: (name: string, email: string, password: string) => Promise<void>;
