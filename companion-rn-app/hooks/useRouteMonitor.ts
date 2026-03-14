@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as Location from "expo-location";
 import { DecodedPoint, decodedPolyline } from "@/utils/types";
-import { isUserOnTrack } from "@/utils/locationUtils";
+import { isUserOnDestination, isUserOnTrack } from "@/utils/locationUtils";
 import { useAuthStore } from "@/store/store";
 
 export const useRouteMonitor = (
@@ -9,13 +9,12 @@ export const useRouteMonitor = (
   onDerail?: (polyline: DecodedPoint[]) => void,
   onIntervention?: (audioUrl: string) => void
 ) => {
-  // const [polyline, setPolyline] = useState<DecodedPoint[] | null>(null);
   const polylines = useAuthStore((state) => state.polylines);
-  const [currentPolylineIndex, setCurrentPolylineIndex] = useState(0);
+  const [currentPolylineIndex, setCurrentPolylineIndex] = useState<number>(0);
   const setPolyline = useAuthStore((state) => state.setPolyline);
   const setPolylines = useAuthStore((state) => state.setPolylines);
   const polyline = useAuthStore((state) => state.polyline);
-  const [isDerailed, setIsDerailed] = useState<boolean>(false);
+  const [userArrived, setUserArrived] = useState<boolean>(false);
   const [currentActionText, setCurrentActionText] = useState<string>("");
   const [currentActionVoice, setCurrentActionVoice] = useState<string>("");
 
@@ -77,7 +76,6 @@ export const useRouteMonitor = (
     const decodePolyline = require("decode-google-map-polyline");
     const decodedPolyline = decodePolyline(polyline);
     setPolyline(decodedPolyline);
-    setIsDerailed(false);
     // console.log(decodedPolyline);
 
     derailTriggeredRef.current = false;
@@ -92,7 +90,6 @@ export const useRouteMonitor = (
     });
 
     setPolylines(decodedPolylines);
-    setIsDerailed(false);
     console.log(decodedPolylines);
 
     derailTriggeredRef.current = false;
@@ -108,25 +105,31 @@ export const useRouteMonitor = (
     console.log("------");
 
     if (!onTrack) {
-      setIsDerailed(true);
       console.log("USER DERAILED, ASKING FOR NEW DIRECTIONS");
       derailTriggeredRef.current = true;
       onDerail && onDerail(polyline);
     }
   }, [location, polyline, onDerail]);
 
-  const resetDerail = () => {
-    setIsDerailed(false);
-  };
+  useEffect(() => {
+    if (!location || !polyline) return;
+    if (isUserOnDestination(location, polyline[polyline.length - 1])) {
+      setUserArrived(true);
+      setPolyline(null);
+      setPolylines(null);
+      setCurrentActionText("");
+      setCurrentActionVoice("");
+      setCurrentPolylineIndex(0);
+    }
+  }, [location, polyline]);
 
   return {
     polyline,
-    resetDerail,
     setPolylineFunction,
     setIndividualPolylinesFunction,
     currentPolylineIndex,
-    isDerailed,
     currentActionText,
     currentActionVoice,
+    userArrived,
   };
 };
