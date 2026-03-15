@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import MapView, { Circle, Marker, Polyline } from "react-native-maps";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useAuthStore } from "@/store/store";
@@ -9,6 +9,7 @@ import {
   Feather,
   FontAwesome,
   FontAwesome5,
+  FontAwesome6,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import { useRouteMonitor } from "@/hooks/useRouteMonitor";
@@ -16,29 +17,42 @@ import { ThemedView } from "@/components/ThemedView";
 import { colours } from "@/constants/Colors";
 import { useAudioPlayer } from "expo-audio";
 import { Dimensions } from "react-native";
+import ContentModal from "./ContentModal";
+import BugReportComponent from "./BugReportComponent";
 
 export default function App() {
   //TODO:
   // Need to create components for info pannel
-  // Need to place the actual user's location in relation to the route line
   // General fixes and improvements in style
 
   const user = useAuthStore((state) => state.user);
 
   const polylines = useAuthStore((state) => state.polylines);
+  const [showArrivalModal, setShowArrivalModal] = useState(false);
+  const [showBugModal, setShowBugModal] = useState(false);
 
   const screenWidth = Dimensions.get("window").width;
 
   //location
   const location = useLocationTracker();
 
-  const { currentPolylineIndex, currentActionText, currentActionVoice } =
-    useRouteMonitor(location);
+  const {
+    currentPolylineIndex,
+    currentActionText,
+    currentActionVoice,
+    userArrived,
+  } = useRouteMonitor(location);
 
   // useEffect(() => {
   //   console.log(" -- NEW POLYLINES: --");
   //   console.log(polylines);
   // }, [polylines]);
+
+  useEffect(() => {
+    if (userArrived) {
+      setShowArrivalModal(true);
+    }
+  }, [userArrived]);
 
   useEffect(() => {
     console.log(" -- NEW AUDIO FILE: --");
@@ -92,6 +106,48 @@ export default function App() {
     player.play();
   };
 
+  // Calculate the user's position (0% to 100%) across the entire route
+  const userProgressPercentage = useMemo(() => {
+    if (!polylines || !location) return 0;
+
+    let totalDots = 0;
+    let completedDots = 0;
+
+    // 1. Count dots from fully completed previous steps
+    for (let i = 0; i < polylines.length; i++) {
+      totalDots += polylines[i].length;
+      if (i < currentPolylineIndex) {
+        completedDots += polylines[i].length;
+      }
+    }
+
+    // 2. Estimate progress on the CURRENT step by finding the closest coordinate
+    const currentLine = polylines[currentPolylineIndex];
+    if (currentLine) {
+      let minDistance = Infinity;
+      let closestPointIndex = 0;
+
+      const userLat = location.coords.latitude;
+      const userLng = location.coords.longitude;
+
+      // Simple distance check to find the closest dot on the current line
+      currentLine.forEach((point, index) => {
+        const dx = point.lat - userLat;
+        const dy = point.lng - userLng;
+        const dist = dx * dx + dy * dy;
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestPointIndex = index;
+        }
+      });
+
+      completedDots += closestPointIndex;
+    }
+    // 3. Calculate final percentage, capped between 0 and 100
+    const rawPercentage = (completedDots / totalDots) * 100;
+    return Math.max(0, Math.min(100, rawPercentage));
+  }, [polylines, currentPolylineIndex, location]);
+
   if (!location) return;
   return (
     <View style={styles.container}>
@@ -132,7 +188,6 @@ export default function App() {
             </View>
           </View>
         </Marker>
-
         {/* Default Polyline */}
         {mapCoordinates &&
           mapCoordinates.map((polyline, index) => (
@@ -217,7 +272,7 @@ export default function App() {
               </ThemedText>
             </ThemedView>
             <View style={styles.routeTracker}>
-              <View style={styles.lineCotainer}>
+              <View style={styles.lineContainer}>
                 <View style={{ position: "absolute", top: -13, left: -30 }}>
                   <FontAwesome name="hospital-o" size={24} color="#723feb" />
                 </View>
@@ -245,7 +300,12 @@ export default function App() {
                   <Feather name="home" size={24} color="#723feb" />
                 </View>
                 <View
-                  style={{ position: "absolute", top: "-350%", left: "55%" }}
+                  style={{
+                    position: "absolute",
+                    top: "-350%",
+                    left: `${userProgressPercentage}%`,
+                    marginLeft: -10,
+                  }}
                 >
                   <View style={{ position: "absolute" }}>
                     <FontAwesome5
@@ -303,7 +363,44 @@ export default function App() {
             </View>
           </ThemedView>
         )}
+
+        <View
+          style={{
+            position: "absolute",
+            top: "10%",
+            right: "5%",
+          }}
+        >
+          <TouchableOpacity
+            style={styles.bugVisibleButton}
+            onPress={() => setShowBugModal(true)}
+          >
+            <FontAwesome6 name="bug" size={30} color="white" />
+          </TouchableOpacity>
+        </View>
       </MapView>
+
+      <ContentModal
+        visible={showArrivalModal}
+        onClose={() => setShowArrivalModal(false)}
+        buttonText="Done"
+        onButtonPress={() => setShowArrivalModal(false)}
+        iconName="map-location-dot"
+      >
+        <ThemedText type="title" style={styles.title}>
+          You've Arrived!
+        </ThemedText>
+
+        <ThemedText style={styles.subtitle}>
+          You have successfully and safely reached your destination.
+        </ThemedText>
+      </ContentModal>
+
+      <BugReportComponent
+        visible={showBugModal}
+        onClose={() => setShowBugModal(false)}
+        iconName="bug"
+      />
     </View>
   );
 }
@@ -358,7 +455,7 @@ const styles = StyleSheet.create({
     boxShadow: "rgba(0, 0, 0, 0.01) 0px 5px 50px 0px",
   },
 
-  lineCotainer: {
+  lineContainer: {
     marginLeft: "auto",
     marginRight: "auto",
     width: "75%",
@@ -401,5 +498,32 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOpacity: 0.1,
     boxShadow: "rgba(0, 0, 0, 0.01) 0px 5px 50px 0px",
+  },
+
+  title: {
+    fontSize: 26,
+    textAlign: "center",
+    marginBottom: 10,
+    color: "#1E293B",
+  },
+  subtitle: {
+    fontSize: 16,
+    textAlign: "center",
+    color: "#666",
+    marginBottom: 30,
+    lineHeight: 22,
+  },
+
+  bugVisibleButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 100,
+    borderStyle: "solid",
+    borderWidth: 2,
+    borderColor: "white",
+    backgroundColor: "#723feb",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
   },
 });
