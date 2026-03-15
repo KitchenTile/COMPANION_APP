@@ -1,22 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
-import MapView, { Circle, Marker, Polyline } from "react-native-maps";
-import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, TextInput } from "react-native";
 import { useAuthStore } from "@/store/store";
-import { useLocationTracker } from "@/hooks/useLocationTracker";
 import { ThemedText } from "@/components/ThemedText";
-import {
-  AntDesign,
-  Feather,
-  FontAwesome,
-  FontAwesome5,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
-import { useRouteMonitor } from "@/hooks/useRouteMonitor";
-import { ThemedView } from "@/components/ThemedView";
-import { colours } from "@/constants/Colors";
-import { useAudioPlayer } from "expo-audio";
-import { Dimensions } from "react-native";
 import ContentModal from "./ContentModal";
+import { supabase } from "@/supabase/supabase";
 
 interface ArrivalModalProps {
   visible: boolean;
@@ -29,18 +16,29 @@ export default function BugReportComponent({
   onClose,
   iconName,
 }: ArrivalModalProps) {
-  const [value, onChangeText] = useState("Please be descriptive about the bug");
+  const [bugText, setBugText] = useState("");
   const user = useAuthStore((state) => state.user);
 
-  const submitBug = () => {
-    return;
+  const submitBug = async () => {
+    if (!user) return;
+    const { data, error } = await supabase.from("bug_report").insert({
+      bug: bugText,
+      user_id: user.id,
+    });
+
+    if (error) {
+      console.log(error);
+    } else {
+      setBugText("");
+      onClose();
+    }
   };
   return (
     <ContentModal
       visible={visible}
       onClose={onClose}
       buttonText="Submit"
-      onButtonPress={() => {}}
+      onButtonPress={submitBug}
       iconName={iconName}
     >
       <ThemedText type="title" style={styles.title}>
@@ -55,9 +53,9 @@ export default function BugReportComponent({
         editable
         multiline
         numberOfLines={4}
-        maxLength={40}
-        onChangeText={(text) => onChangeText(text)}
-        value={value}
+        onChangeText={(text) => setBugText(text)}
+        value={bugText}
+        placeholder="Please be descriptive about the bug"
         style={styles.textInput}
       />
     </ContentModal>
