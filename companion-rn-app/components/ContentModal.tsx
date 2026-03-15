@@ -1,5 +1,14 @@
 import React, { Children } from "react";
-import { Modal, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  StyleSheet,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { FontAwesome6 } from "@expo/vector-icons";
@@ -28,20 +37,30 @@ const ContentModal = ({
       visible={visible}
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <ThemedView style={[styles.modalContainer, styles.shadow]}>
-          <TouchableOpacity style={styles.crossIcon} onPress={onClose}>
-            <FontAwesome6 name="window-close" size={25} color="black" />
-          </TouchableOpacity>
-          <View style={styles.iconContainer}>
-            <FontAwesome6 name={iconName} size={40} color="white" />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.overlay}>
+            <ThemedView style={[styles.modalContainer, styles.shadow]}>
+              <TouchableOpacity style={styles.crossIcon} onPress={onClose}>
+                <FontAwesome6 name="window-close" size={25} color="black" />
+              </TouchableOpacity>
+
+              <View style={styles.iconContainer}>
+                <FontAwesome6 name={iconName} size={40} color="white" />
+              </View>
+
+              {children}
+
+              <TouchableOpacity style={styles.button} onPress={onButtonPress}>
+                <ThemedText style={styles.buttonText}>{buttonText}</ThemedText>
+              </TouchableOpacity>
+            </ThemedView>
           </View>
-          {children}
-          <TouchableOpacity style={styles.button} onPress={onButtonPress}>
-            <ThemedText style={styles.buttonText}>{buttonText}</ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
-      </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
