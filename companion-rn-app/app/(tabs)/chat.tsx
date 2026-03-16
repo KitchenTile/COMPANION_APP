@@ -1,12 +1,14 @@
 import {
   Alert,
   Dimensions,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
@@ -339,80 +341,90 @@ const ChatPage = () => {
     <ThemedView style={{ flex: 1 }}>
       <VoiceComponentView
         isTalking={audioRecorder.isRecording}
-        // isTalking={isTalking}
         chatVisible={chatVisible}
         onMicPress={record}
         onPausePress={stopRecording}
         loadingBubble={loadingMessage}
         onToggleChat={() => setChatVisible(!chatVisible)}
       />
+
       {chatVisible && (
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={[styles.pageContainer]}
-        >
-          <ScrollView
-            style={{
-              height: Dimensions.get("window").height * 0.755,
-              width: Dimensions.get("window").width * 1,
-            }}
-            contentContainerStyle={styles.chatContainer}
-            ref={scrollViewRef}
-            onContentSizeChange={() => scrollViewRef.current?.scrollToEnd()}
+        <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1 }}
+            keyboardVerticalOffset={Platform.OS === "ios" ? -90 : 0}
           >
-            {messages?.map((individualMessage: messageInterface, index) => (
-              <View
-                style={[
-                  styles.messageContainer,
-                  individualMessage.role === "user" &&
-                    styles.userMessageContainer,
-                ]}
-                key={index}
-              >
-                <Text
-                  style={[
-                    styles.message,
-                    individualMessage.role === "user" && styles.userMessage,
-                  ]}
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <View style={styles.masterContainer}>
+                <ScrollView
+                  style={styles.scrollView}
+                  contentContainerStyle={styles.chatContainer}
+                  ref={scrollViewRef}
+                  onContentSizeChange={() =>
+                    scrollViewRef.current?.scrollToEnd()
+                  }
                 >
-                  {typeof individualMessage.content !== "object" &&
-                    individualMessage.content}
-                </Text>
+                  {messages?.map((individualMessage, index) => (
+                    <View
+                      key={index}
+                      style={[
+                        styles.messageContainer,
+                        individualMessage.role === "user" &&
+                          styles.userMessageContainer,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.message,
+                          individualMessage.role === "user" &&
+                            styles.userMessage,
+                        ]}
+                      >
+                        {typeof individualMessage.content !== "object" &&
+                          individualMessage.content}
+                      </Text>
+                    </View>
+                  ))}
+                </ScrollView>
+
+                <View style={styles.inputRow}>
+                  <TextInput
+                    style={styles.input}
+                    onChangeText={setUserInput}
+                    value={userInput}
+                    placeholder="Record or type.."
+                  />
+                  {recorderState.isRecording ? (
+                    <TouchableOpacity
+                      onPress={stopRecording}
+                      style={styles.btn}
+                    >
+                      <FontAwesome6 name="pause" size={20} color="#4d4c4cff" />
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      onPress={() =>
+                        userInput.length !== 0 ? sendMessage("text") : record()
+                      }
+                      style={styles.btn}
+                    >
+                      {userInput.length !== 0 ? (
+                        <Text style={styles.btnTxt}>→</Text>
+                      ) : (
+                        <FontAwesome6
+                          name="microphone"
+                          size={20}
+                          color="#4d4c4cff"
+                        />
+                      )}
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
-            ))}
-            {loadingMessage && (
-              <View style={[styles.loadingBubble]}>
-                <TypingIndicator />
-              </View>
-            )}
-          </ScrollView>
-          <View style={styles.inputRow}>
-            <TextInput
-              style={styles.input}
-              onChangeText={setUserInput}
-              value={userInput}
-              placeholder="Record or type.."
-            />
-            {recorderState.isRecording ? (
-              <TouchableOpacity onPress={stopRecording} style={styles.btn}>
-                <FontAwesome6 name="pause" size={20} color="#4d4c4cff" />
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                onPress={() =>
-                  userInput.length !== 0 ? sendMessage("text") : record()
-                }
-                style={styles.btn}
-              >
-                {userInput.length !== 0 ? (
-                  <Text style={styles.btnTxt}>→</Text>
-                ) : (
-                  <FontAwesome6 name="microphone" size={20} color="#4d4c4cff" />
-                )}
-              </TouchableOpacity>
-            )}
-          </View>
-        </KeyboardAvoidingView>
+            </TouchableWithoutFeedback>
+          </KeyboardAvoidingView>
+        </View>
       )}
     </ThemedView>
   );
@@ -426,15 +438,44 @@ const styles = StyleSheet.create({
     width: "100%",
     position: "absolute",
     top: 60,
-    // backgroundColor: "rgb(242,242,242)",
   },
-
+  masterContainer: {
+    flex: 1,
+    marginTop: 60,
+    marginHorizontal: 0,
+    justifyContent: "flex-end",
+    backgroundColor: "white",
+  },
+  scrollView: {
+    flex: 1,
+    marginBottom: 10,
+  },
   chatContainer: {
     display: "flex",
     padding: 0,
     marginTop: 10,
     flexDirection: "column",
     paddingInline: 10,
+  },
+
+  inputRow: {
+    flexDirection: "row",
+    gap: 5,
+    marginBottom: 100,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: "#723feb",
+    backgroundColor: "white",
+    alignItems: "center",
+    paddingRight: 5,
+    width: "90%",
+    alignSelf: "center",
+  },
+
+  input: {
+    height: 45,
+    paddingHorizontal: 15,
+    flex: 1,
   },
 
   messageContainer: {
@@ -468,23 +509,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 0,
     color: "white",
     backgroundColor: "#9777e2ff",
-  },
-
-  inputRow: {
-    display: "flex",
-    flexDirection: "row",
-    gap: 5,
-    marginTop: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#723feb",
-    borderStyle: "solid",
-  },
-
-  input: {
-    height: 40,
-    padding: 10,
-    width: 300,
   },
 
   btn: {
