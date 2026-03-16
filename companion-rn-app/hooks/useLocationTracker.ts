@@ -46,8 +46,8 @@ export const useLocationTracker = () => {
       subscription = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
-          timeInterval: 1000,
-          distanceInterval: 1,
+          timeInterval: 2000,
+          distanceInterval: 2,
         },
         (loc) => {
           console.log("update:", loc.coords.latitude, loc.coords.longitude);
