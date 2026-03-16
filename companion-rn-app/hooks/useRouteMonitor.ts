@@ -28,27 +28,28 @@ export const useRouteMonitor = (
     console.log(routeGraph);
   }, [routeGraph]);
 
+  //effect to keep track of step dissalignment and active action voice and text
   useEffect(() => {
     if (!routeGraph || !routeGraph.steps || routeGraph.steps.length === 0)
       return;
     const activePhysicalStep = currentPolylineIndex + 1;
 
-    const currentLogicalStepIndex = routeGraph.steps.findIndex((step: any) =>
+    const currentShortenedStepIndex = routeGraph.steps.findIndex((step: any) =>
       step.mapped_raw_steps.includes(activePhysicalStep)
     );
 
-    if (currentLogicalStepIndex === -1) return;
+    if (currentShortenedStepIndex === -1) return;
 
-    const currentLogicalStep = routeGraph.steps[currentLogicalStepIndex];
-    const prevention = currentLogicalStep.best_prevention;
+    const currentShortenedStep = routeGraph.steps[currentShortenedStepIndex];
+    const prevention = currentShortenedStep.best_prevention;
 
     if (
       prevention
-      // !previouslyTriggeredSteps.current.has(currentLogicalStepIndex)
+      // !previouslyTriggeredSteps.current.has(currentShortenedStepIndex)
     ) {
       setCurrentActionText(prevention.label.action_text);
       setCurrentActionVoice(prevention.audio_url.signedURL);
-      console.log("FIRING PREVENTION FOR NODE:", currentLogicalStep.node_to);
+      console.log("FIRING PREVENTION FOR NODE:", currentShortenedStep.node_to);
       console.log("ACTION VOICE:", prevention.label.action_voice);
       console.log("ACTION TEXT:", prevention.label.action_text);
 
@@ -56,10 +57,11 @@ export const useRouteMonitor = (
         onIntervention(prevention.audio_url.signedURL);
       }
 
-      previouslyTriggeredSteps.current.add(currentLogicalStepIndex);
+      previouslyTriggeredSteps.current.add(currentShortenedStepIndex);
     }
   }, [currentPolylineIndex, routeGraph]);
 
+  //effect to calculate the current individual polyline the user is on
   useEffect(() => {
     if (!location || !polylines || polylines.length === 0) return;
     const activeIndex = polylines.findIndex((stepPolyline) =>
@@ -71,30 +73,7 @@ export const useRouteMonitor = (
     }
   }, [location, polylines]);
 
-  //decode and set polyline, reset state and ref
-  const setPolylineFunction = (polyline: string) => {
-    const decodePolyline = require("decode-google-map-polyline");
-    const decodedPolyline = decodePolyline(polyline);
-    setPolyline(decodedPolyline);
-    // console.log(decodedPolyline);
-
-    derailTriggeredRef.current = false;
-  };
-
-  const setIndividualPolylinesFunction = (polylines: string[]) => {
-    const decodedPolylines: DecodedPoint[][] = [];
-    const decodePolyline = require("decode-google-map-polyline");
-
-    polylines.forEach((polyline) => {
-      decodedPolylines.push(decodePolyline(polyline));
-    });
-
-    setPolylines(decodedPolylines);
-    console.log(decodedPolylines);
-
-    derailTriggeredRef.current = false;
-  };
-
+  //effect to keep an eye on user location and notify if they derail
   useEffect(() => {
     if (!location || !polyline || derailTriggeredRef.current) return;
 
@@ -111,6 +90,7 @@ export const useRouteMonitor = (
     }
   }, [location, polyline, onDerail]);
 
+  //effect to reset states when the user reaches their destination
   useEffect(() => {
     if (!location || !polyline) return;
     if (isUserOnDestination(location, polyline[polyline.length - 1])) {
@@ -122,6 +102,31 @@ export const useRouteMonitor = (
       setCurrentPolylineIndex(0);
     }
   }, [location, polyline]);
+
+  //decode and set polyline, reset state and ref
+  const setPolylineFunction = (polyline: string) => {
+    const decodePolyline = require("decode-google-map-polyline");
+    const decodedPolyline = decodePolyline(polyline);
+    setPolyline(decodedPolyline);
+    // console.log(decodedPolyline);
+
+    derailTriggeredRef.current = false;
+  };
+
+  //decode and set individual polylines as an array of arrays of coords
+  const setIndividualPolylinesFunction = (polylines: string[]) => {
+    const decodedPolylines: DecodedPoint[][] = [];
+    const decodePolyline = require("decode-google-map-polyline");
+
+    polylines.forEach((polyline) => {
+      decodedPolylines.push(decodePolyline(polyline));
+    });
+
+    setPolylines(decodedPolylines);
+    console.log(decodedPolylines);
+
+    derailTriggeredRef.current = false;
+  };
 
   return {
     polyline,
