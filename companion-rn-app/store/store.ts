@@ -13,10 +13,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   session: null,
   graph: null,
 
+  //polylines nad graph
   setPolyline: (polyline: any) => set({ polyline: polyline }),
   setPolylines: (polylines: any) => set({ polylines: polylines }),
   setGraph: (graph: any) => set({ graph: graph }),
 
+  //user login function
   login: async (email: string, password: string) => {
     set({ isLoading: true, error: null });
     try {
@@ -45,6 +47,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     }
   },
 
+  //user signup function
   signUp: async (name: string, email: string, password: string) => {
     set({ isLoading: true, error: null });
     try {
@@ -80,6 +83,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     }
   },
 
+  //user logout function
   logout: async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -94,6 +98,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     }
   },
 
+  //session manager
   initialize: async () => {
     set({ isLoading: true, error: null });
     try {
