@@ -45,7 +45,7 @@ const ContentModal = ({
           <View style={styles.overlay}>
             <ThemedView style={[styles.modalContainer, styles.shadow]}>
               <TouchableOpacity style={styles.crossIcon} onPress={onClose}>
-                <FontAwesome6 name="window-close" size={25} color="black" />
+                <FontAwesome6 name="window-close" size={25} color="#723feb" />
               </TouchableOpacity>
 
               <View style={styles.iconContainer}>
