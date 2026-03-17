@@ -23,6 +23,7 @@ import {
   Ionicons,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
+import { supabase } from "@/supabase/supabase";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -30,6 +31,29 @@ export default function HomeScreen() {
   //TODO:
   // huge file
   // implement device vitals
+
+  interface Identity {
+    age: number;
+    living_status: string;
+    name: string;
+  }
+
+  interface BehavioralHistory {
+    anxiety_triggers: string;
+    navigation_errors: any;
+  }
+
+  interface ClinicalContext {
+    cognitive_load: string;
+    condition: string;
+    symptoms: any;
+  }
+
+  interface UserProfile {
+    identity: Identity;
+    behavioral_history: BehavioralHistory;
+    clinical_context: any;
+  }
 
   // imports from store
   const login = useAuthStore((state) => state.login);
@@ -43,11 +67,7 @@ export default function HomeScreen() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
-  useEffect(() => {
-    if (!user) return;
-    console.log("user id");
-    console.log(user.id);
-  }, [user]);
+  const [userProfile, setUserPorfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     const sub = Linking.addEventListener("url", ({ url }) => {
@@ -71,17 +91,31 @@ export default function HomeScreen() {
     await login(email, password);
   };
 
-  useEffect(() => {
-    console.log(password);
-  }, [password]);
-
   const logInFunction = async () => {
     // if the input fields are empty, return
     if (email === "" || password === "") return;
-    console.log(`logging in ${email}`);
+    console.log(`⁠logging in ${email}`);
     //log in
     await login(email, password);
   };
+
+  const getUserProfile = async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from("users")
+      .select("identity, clinical_context, behavioral_history")
+      .eq("id", user.id);
+    if (error) console.log(error);
+
+    if (data) setUserPorfile(data[0]);
+  };
+
+  useEffect(() => {
+    if (user) {
+      console.log("User logged in:", user.id);
+      getUserProfile();
+    }
+  }, [user]);
 
   return (
     <KeyboardAvoidingView
@@ -98,370 +132,71 @@ export default function HomeScreen() {
             />
           }
         >
-          {user ? (
-            <ThemedView>
-              <ThemedView style={[styles.titleContainer, { gap: 80 }]}>
-                <ThemedText type="title">
-                  {user.user_metadata.full_name}'s Dashboard
-                </ThemedText>
-                <FontAwesome6 name="circle-info" size={32} color="#723feb" />
-              </ThemedView>
+          {userProfile ? (
+            <ThemedView style={{ marginTop: 10, gap: 12 }}>
+              <ThemedText type="title">
+                {userProfile.identity.name}'s Profile
+              </ThemedText>
               <ThemedView style={[styles.infoContainer, styles.shadow]}>
-                <ThemedText style={styles.infoTitle}>
-                  Your appointments for the week
-                </ThemedText>
-                <ThemedView
-                  style={{
-                    flexDirection: "row",
-                    gap: 10,
-                    marginLeft: 20,
-                    marginTop: 15,
-                    alignItems: "center",
-                    // backgroundColor: "red",
-                  }}
-                >
-                  <ThemedView style={styles.arrowTurn}>
-                    <FontAwesome6
-                      name="arrow-turn-up"
-                      size={24}
-                      color="black"
-                    />
-                  </ThemedView>
-                  <View
-                    style={{
-                      backgroundColor: "#e2e2e2ff",
-                      alignItems: "center",
-                      borderRadius: 20,
-                      padding: 5,
-                      paddingHorizontal: 10,
-                    }}
-                  >
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 10,
-                      }}
-                    >
-                      <View
-                        style={{
-                          width: 10,
-                          height: 10,
-                          borderRadius: 5,
-                          backgroundColor: "#029802ff",
-                        }}
-                      />
-                      <ThemedText style={{ fontWeight: 600 }}>
-                        General appointment with Dr. Martins
-                      </ThemedText>
-                    </View>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        gap: 20,
-                        paddingLeft: 30,
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <ThemedText style={{ fontWeight: 600, fontSize: 14 }}>
-                        Status: Confirmed
-                      </ThemedText>
-                      <ThemedText style={{ fontWeight: 600, fontSize: 14 }}>
-                        Tuesday 10:00 AM
-                      </ThemedText>
-                    </View>
-                  </View>
-                </ThemedView>
-                <ThemedView
-                  style={{
-                    flexDirection: "row",
-                    gap: 10,
-                    marginLeft: 20,
-                    marginTop: 5,
-                    alignItems: "center",
-                    // backgroundColor: "red",
-                  }}
-                >
-                  <ThemedView style={styles.arrowTurn}>
-                    <FontAwesome6
-                      name="arrow-turn-up"
-                      size={24}
-                      color="black"
-                    />
-                  </ThemedView>
-                  <View
-                    style={{
-                      backgroundColor: "#e2e2e2ff",
-                      alignItems: "center",
-                      borderRadius: 20,
-                      padding: 5,
-                      paddingHorizontal: 10,
-                      width: "90%",
-                    }}
-                  >
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 10,
-                        width: "100%",
-                      }}
-                    >
-                      <View
-                        style={{
-                          width: 10,
-                          height: 10,
-                          borderRadius: 5,
-                          backgroundColor: "#029802ff",
-                        }}
-                      />
-                      <ThemedText style={{ fontWeight: 600 }}>
-                        Optician appointment
-                      </ThemedText>
-                    </View>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        gap: 30,
-                        paddingLeft: 20,
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <ThemedText style={{ fontWeight: 600, fontSize: 14 }}>
-                        Status: Confirmed
-                      </ThemedText>
-                      <ThemedText style={{ fontWeight: 600, fontSize: 14 }}>
-                        Friday 11:00 AM
-                      </ThemedText>
-                    </View>
-                  </View>
-                </ThemedView>
-                <ThemedView
-                  style={{
-                    flexDirection: "row",
-                    gap: 10,
-                    marginLeft: 20,
-                    marginTop: 5,
-                    alignItems: "center",
-                    // backgroundColor: "red",
-                  }}
-                >
-                  <ThemedView style={styles.arrowTurn}>
-                    <FontAwesome6
-                      name="arrow-turn-up"
-                      size={24}
-                      color="black"
-                    />
-                  </ThemedView>
-                  <View
-                    style={{
-                      backgroundColor: "#e2e2e2ff",
-                      alignItems: "center",
-                      borderRadius: 20,
-                      padding: 5,
-                      paddingHorizontal: 10,
-                      width: "90%",
-                    }}
-                  >
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 10,
-                        width: "100%",
-                      }}
-                    >
-                      <View
-                        style={{
-                          width: 10,
-                          height: 10,
-                          borderRadius: 5,
-                          backgroundColor: "#ee2a2aff",
-                        }}
-                      />
-                      <ThemedText style={{ fontWeight: 600 }}>
-                        Dental appointment with Dr. Lee
-                      </ThemedText>
-                    </View>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        gap: 30,
-                        paddingLeft: 20,
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <ThemedText style={{ fontWeight: 600, fontSize: 14 }}>
-                        Status: Cancelled
-                      </ThemedText>
-                      <ThemedText style={{ fontWeight: 600, fontSize: 14 }}>
-                        Friday 12:00 PM
-                      </ThemedText>
-                    </View>
-                  </View>
-                </ThemedView>
-                <ThemedView
-                  style={{
-                    flexDirection: "row",
-                    gap: 10,
-                    marginLeft: 20,
-                    marginTop: 5,
-                    alignItems: "center",
-                    // backgroundColor: "red",
-                  }}
-                >
-                  <ThemedView style={styles.arrowTurn}>
-                    <FontAwesome6
-                      name="arrow-turn-up"
-                      size={24}
-                      color="black"
-                    />
-                  </ThemedView>
-                  <View
-                    style={{
-                      backgroundColor: "#e2e2e2ff",
-                      alignItems: "center",
-                      borderRadius: 20,
-                      padding: 5,
-                      paddingHorizontal: 10,
-                      width: "90%",
-                    }}
-                  >
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 10,
-                        width: "100%",
-                      }}
-                    >
-                      <View
-                        style={{
-                          width: 10,
-                          height: 10,
-                          borderRadius: 5,
-                          backgroundColor: "#fbff00ff",
-                        }}
-                      />
-                      <ThemedText style={{ fontWeight: 600 }}>
-                        Councelling with Dr. Stephens
-                      </ThemedText>
-                    </View>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        gap: 30,
-                        paddingLeft: 20,
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <ThemedText style={{ fontWeight: 600, fontSize: 14 }}>
-                        Status: Conflicting
-                      </ThemedText>
-                      <ThemedText style={{ fontWeight: 600, fontSize: 14 }}>
-                        Friday 12:00 PM
-                      </ThemedText>
-                    </View>
-                  </View>
-                </ThemedView>
-                <View style={styles.infoIcon}>
-                  <Ionicons name="calendar" size={20} color="white" />
-                </View>
-              </ThemedView>
-              <ThemedView style={[styles.infoContainer, styles.shadow]}>
-                <ThemedText style={styles.infoTitle}>Device Vitals</ThemedText>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-evenly",
-                  }}
-                >
-                  <View style={styles.vitalContainer}>
-                    <FontAwesome6 name="battery-half" size={22} color="white" />
-                    <ThemedText style={{ fontWeight: 600, color: "white" }}>
-                      76%
-                    </ThemedText>
-                  </View>
-                  <View style={styles.vitalContainer}>
-                    <FontAwesome6 name="signal" size={16} color="white" />
-                    <ThemedText style={{ fontWeight: 600, color: "white" }}>
-                      4G
-                    </ThemedText>
-                  </View>
-                  <View style={styles.vitalContainer}>
-                    <FontAwesome6 name="wifi" size={16} color="white" />
-                    <View
-                      style={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: 5,
-                        backgroundColor: "#029802ff",
-                      }}
-                    />
-                  </View>
-                  <View style={styles.vitalContainer}>
-                    <FontAwesome6 name="volume-high" size={16} color="white" />
-                  </View>
-                </View>
-                <View style={styles.infoIcon}>
-                  <Ionicons name="pulse-outline" size={20} color="white" />
-                </View>
-              </ThemedView>
-              <ThemedView style={[styles.infoContainer, styles.shadow]}>
-                <ThemedText style={styles.infoTitle}>
-                  Upcoming reminders
-                </ThemedText>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    marginTop: 20,
-                    gap: 10,
-                  }}
-                >
-                  <View style={[styles.warningSign, styles.shadow]}>
-                    <ThemedText
-                      style={{
-                        fontSize: 30,
-                        fontWeight: 600,
-                        textAlign: "center",
-                        alignItems: "center",
-                        lineHeight: 45,
-                        color: "white",
-                      }}
-                    >
-                      !
-                    </ThemedText>
-                  </View>
-                  <View style={styles.warningContainer}>
-                    <ThemedText style={{ fontWeight: 600, fontSize: 17 }}>
-                      Remember to get the clothes off thene
-                    </ThemedText>
-                  </View>
-                </View>
                 <View style={styles.infoIcon}>
                   <MaterialCommunityIcons
-                    name="reminder"
+                    name="account-details"
                     size={20}
                     color="white"
                   />
                 </View>
+                <ThemedView>
+                  <ThemedText style={styles.label} type="title">
+                    General Info
+                  </ThemedText>
+                  <ThemedText style={styles.subText}>
+                    Name: {userProfile.identity.name}
+                  </ThemedText>
+                  <ThemedText style={styles.subText}>
+                    Status: {userProfile.identity.living_status}
+                  </ThemedText>
+                  <ThemedText style={styles.subText}>
+                    Age: {userProfile.identity.age} years old
+                  </ThemedText>
+                </ThemedView>
               </ThemedView>
-              {/* <ThemedView>
-                  <TouchableOpacity
-                    style={styles.loginSignupButton}
-                    onPress={logout}
-                  >
-                    <ThemedText
-                      style={{
-                        color: "white",
-                        textAlign: "center",
-                        fontSize: 20,
-                      }}
-                    >
-                      Log Out
-                    </ThemedText>
-                  </TouchableOpacity>
-                </ThemedView> */}
+
+              <ThemedView style={[styles.infoContainer, styles.shadow]}>
+                <View style={styles.infoIcon}>
+                  <Ionicons name="medical" size={20} color="white" />
+                </View>
+                <ThemedView>
+                  <ThemedText style={styles.label} type="title">
+                    Clinical Context
+                  </ThemedText>
+                  <ThemedText style={styles.subText}>
+                    Condition: {userProfile.clinical_context.condition}
+                  </ThemedText>
+                  <ThemedText style={styles.subText}>
+                    Congnitive Load:{" "}
+                    {userProfile.clinical_context.cognitive_load}
+                  </ThemedText>
+                </ThemedView>
+              </ThemedView>
+
+              <ThemedView style={[styles.infoContainer, styles.shadow]}>
+                <View style={styles.infoIcon}>
+                  <MaterialCommunityIcons
+                    name="brain"
+                    size={20}
+                    color="white"
+                  />
+                </View>
+                <ThemedView>
+                  <ThemedText style={styles.label} type="title">
+                    Behavioral History
+                  </ThemedText>
+                  <ThemedText style={styles.subText}>
+                    Anxiety Triggers:{" "}
+                    {userProfile.behavioral_history.anxiety_triggers}
+                  </ThemedText>
+                </ThemedView>
+              </ThemedView>
             </ThemedView>
           ) : (
             <ThemedView>
@@ -524,14 +259,6 @@ export default function HomeScreen() {
               </ThemedView>
             </ThemedView>
           )}
-
-          {/* <TouchableOpacity style={styles.gmailButton} onPress={openGoogleLink}>
-            <ThemedText
-              style={{ color: "white", textAlign: "center", fontSize: 20 }}
-            >
-              Link Gmail
-            </ThemedText>
-          </TouchableOpacity> */}
         </ParallaxScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
@@ -599,7 +326,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#733feb48",
     padding: 15,
-    marginBottom: 20,
+    marginBottom: 10,
   },
   infoTitle: {
     fontWeight: 600,
@@ -664,5 +391,17 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOpacity: 0.1,
     boxShadow: "rgba(0, 0, 0, 0.01) 0px 5px 50px 0px",
+  },
+
+  label: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#723feb",
+    textTransform: "uppercase",
+    marginBottom: 10,
+  },
+  subText: {
+    fontSize: 15,
+    color: "#262c35ff",
   },
 });
