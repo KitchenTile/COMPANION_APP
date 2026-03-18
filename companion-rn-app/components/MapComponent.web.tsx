@@ -124,13 +124,7 @@ export default function App() {
   const [model, setModel] = useState<string>("gpt-5");
   const [probability_model, setProbability_model] = useState<string>("gpt-5");
 
-  const modelOptions = [
-    "gpt-5",
-    "gpt-5-mini",
-    "gpt-5-nano",
-    "gpt-5.2",
-    "anticip8",
-  ];
+  const modelOptions = ["gpt-5", "anticip8"];
 
   const onNodeClick = (_: any, node: any) => {
     if (node.data.type !== "prevention") return;
@@ -152,7 +146,7 @@ export default function App() {
       destination,
       model,
       probability_model,
-      userId: user.id,
+      user_id: user.id,
     });
     setTravelData(data);
     if (data) setLoading(false);
