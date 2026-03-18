@@ -78,11 +78,15 @@ const ChatPage = () => {
 
     //fetch chats
     const fetchUserChats = async (userId: string) => {
+      console.log("fetching chats");
       const chats: Chat[] | undefined | PostgrestError = await fetchChat(
         user.id
       );
 
-      if (!Array.isArray(chats) || chats.length === 0) return;
+      if (!Array.isArray(chats) || chats.length === 0) {
+        console.log("Error fetching chats");
+        return;
+      }
 
       // if chats is a array set state
       setChats(chats);
