@@ -124,6 +124,7 @@ export default function App() {
   const [model, setModel] = useState<string>("gpt-5");
   const [probability_model, setProbability_model] = useState<string>("gpt-5");
 
+  const graph = useAuthStore((state) => state.graph);
   const modelOptions = ["gpt-5", "anticip8"];
 
   const onNodeClick = (_: any, node: any) => {
@@ -137,6 +138,11 @@ export default function App() {
   };
 
   const closeModal = () => setSelectedNode(null);
+
+  useEffect(() => {
+    if (!graph) return;
+    setTravelData(graph);
+  }, [graph]);
 
   const getTravelData = async () => {
     if (origin === "" || destination === "" || !user) return;
