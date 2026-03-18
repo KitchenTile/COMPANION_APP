@@ -16,8 +16,6 @@ export const useChatWebsocket = (
   // connect to chatId's websocket
   useEffect(() => {
     if (!chatId) return;
-    // const ws = new WebSocket(`ws://localhost:8000/ws/${chatId}`);
-    // const ws = new WebSocket(`ws://192.168.1.28:8000/ws/${chatId}`);
 
     const ws = new WebSocket(`${WS_URL}/ws/${chatId}`);
     wsRef.current = ws;
@@ -32,16 +30,22 @@ export const useChatWebsocket = (
 
     ws.onclose = (e) => {
       console.log("WebSocket Closed:", e.code, e.reason);
+      setTimeout(() => {
+        console.log("Attempting to reconnect...");
+      }, 3000);
     };
 
     ws.onmessage = (event) => {
       const packet = JSON.parse(event.data);
-      onPacket(packet);
+      onPacketRef.current(packet);
     };
 
     return () => {
-      ws.close();
-      wsRef.current = null;
+      if (wsRef.current) {
+        wsRef.current.onclose = null;
+        wsRef.current.close();
+        wsRef.current = null;
+      }
     };
   }, [chatId]);
 
