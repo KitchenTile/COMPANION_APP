@@ -14,7 +14,7 @@ interface routeRequest {
   destination: string;
   model: string;
   probability_model: string;
-  userId: string;
+  user_id: string;
 }
 
 export const getGmailLogin = async () => {
@@ -45,6 +45,7 @@ export const calculateRouteGraph = async (routeRequest: routeRequest) => {
       method: "POST",
       headers: {
         "content-type": "application/json",
+        "ngrok-skip-browser-warning": "true",
       },
       body: JSON.stringify(routeRequest),
     });
@@ -91,7 +92,10 @@ export const sendChatMessage = async (userQuery: userMessage) => {
   try {
     const res = await fetch(`${baseURL + "/chat/message"}`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        "ngrok-skip-browser-warning": "true",
+      },
       body: JSON.stringify(userQuery),
     });
 
@@ -136,7 +140,10 @@ export const sendAudio = async (audio: any) => {
 
     const res = await fetch(`${baseURL + "/chat/transcript"}`, {
       method: "POST",
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: {
+        "Content-Type": "multipart/form-data",
+        "ngrok-skip-browser-warning": "true",
+      },
       body: formData,
     });
 
