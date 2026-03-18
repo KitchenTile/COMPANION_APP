@@ -71,7 +71,12 @@ export const getChatMessages = async (chatId: string, userId: string) => {
     const res = await fetch(
       // `http://192.168.1.28:8000/chat/${chatId}/${userId}`
       // `https://isaac-preadditional-tirelessly.ngrok-free.dev/chat/${chatId}/${userId}`
-      `${baseURL}/chat/${chatId}/${userId}`
+      `${baseURL}/chat/${chatId}/${userId}`,
+      {
+        headers: {
+          "ngrok-skip-browser-warning": "true",
+        },
+      }
     );
     console.log(`URL BELOW`);
 
