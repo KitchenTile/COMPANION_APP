@@ -148,8 +148,9 @@ export default function App() {
       probability_model,
       user_id: user.id,
     });
-    setTravelData(data);
-    if (data) setLoading(false);
+    console.log(data);
+    // setTravelData(data);
+    // if (data) setLoading(false);
   };
 
   useEffect(() => {
