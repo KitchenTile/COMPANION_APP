@@ -70,6 +70,11 @@ export interface packetInterface {
   graph?: any;
 }
 
+export interface webPacketInterface {
+  type: string;
+  data: any;
+}
+
 export type Risk = {
   failure_mode: string;
   label: string;
