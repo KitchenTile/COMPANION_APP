@@ -21,7 +21,7 @@ export default function BugReportComponent({
 
   const submitBug = async () => {
     if (!user) return;
-    const { data, error } = await supabase.from("bug_report").insert({
+    const { error } = await supabase.from("bug_report").insert({
       bug: bugText,
       user_id: user.id,
     });
