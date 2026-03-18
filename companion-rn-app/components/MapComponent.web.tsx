@@ -142,6 +142,7 @@ export default function App() {
   useEffect(() => {
     if (!graph) return;
     setTravelData(graph);
+    setLoading(false);
   }, [graph]);
 
   const getTravelData = async () => {
