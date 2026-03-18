@@ -27,6 +27,7 @@ import {
   DecodedPoint,
   messageInterface,
   packetInterface,
+  webPacketInterface,
 } from "@/utils/types";
 import { useLocationTracker } from "@/hooks/useLocationTracker";
 import { useChatWebsocket } from "@/hooks/useChatWebSocket";
@@ -162,52 +163,61 @@ const ChatPage = () => {
   };
 
   // handle info from websocket
-  const handleIncomingPacket = async (packet: packetInterface) => {
+  const handleIncomingPacket = async (
+    packet: packetInterface | webPacketInterface
+  ) => {
     if (!user || !chatId) return;
-    if (packet.performative === "REQUEST") {
-      setPendingToolId(packet.pending_tool_id);
-      setTaskId(packet.task_id);
-      console.log("WE GOT HERE");
-      console.log(packet.content.audio_url);
-      setAudioUri(packet.content.audio_url);
+    if ("performative" in packet) {
+      if (packet.performative === "REQUEST") {
+        setPendingToolId(packet.pending_tool_id);
+        setTaskId(packet.task_id);
+        console.log("WE GOT HERE");
+        console.log(packet.content.audio_url);
+        setAudioUri(packet.content.audio_url);
+      }
+
+      console.log("-- PACKET ARRIVED --");
+      console.log(packet);
+
+      if (packet.performative === "INFORM") {
+        setPendingToolId(null);
+        setTaskId(null);
+
+        if (packet.polyline) {
+          setPolylineFunction(packet.polyline);
+        }
+
+        if (packet.individualPolylines) {
+          console.log(packet.individualPolylines);
+          setIndividualPolylinesFunction(packet.individualPolylines);
+        }
+
+        if (packet.graph) {
+          setGraph(packet.graph);
+        }
+
+        //and add bot message to ui before fetching
+        const modelMesage = {
+          role: "assistant",
+          content: packet.content.message,
+          timestamp: new Date().toISOString(),
+        };
+
+        setMessages((prev) => (prev ? [...prev, modelMesage] : [modelMesage]));
+        console.log("WE GOT HERE, to inform");
+
+        setAudioUri(packet.content.audio_url);
+      }
+      const messages = await getChatMessages(user.id, chatId);
+      setMessages(messages);
+
+      setLoadingMessage(false);
     }
 
-    console.log("-- PACKET ARRIVED --");
-    console.log(packet);
-
-    if (packet.performative === "INFORM") {
-      setPendingToolId(null);
-      setTaskId(null);
-
-      if (packet.polyline) {
-        setPolylineFunction(packet.polyline);
-      }
-
-      if (packet.individualPolylines) {
-        console.log(packet.individualPolylines);
-        setIndividualPolylinesFunction(packet.individualPolylines);
-      }
-
-      if (packet.graph) {
-        setGraph(packet.graph);
-      }
-
-      //and add bot message to ui before fetching
-      const modelMesage = {
-        role: "assistant",
-        content: packet.content.message,
-        timestamp: new Date().toISOString(),
-      };
-
-      setMessages((prev) => (prev ? [...prev, modelMesage] : [modelMesage]));
-      console.log("WE GOT HERE, to inform");
-
-      setAudioUri(packet.content.audio_url);
+    if ("type" in packet) {
+      console.log("A graph only packet recieved");
+      setGraph(packet.data);
     }
-    const messages = await getChatMessages(user.id, chatId);
-    setMessages(messages);
-
-    setLoadingMessage(false);
   };
 
   // websocket hook to handle state and
