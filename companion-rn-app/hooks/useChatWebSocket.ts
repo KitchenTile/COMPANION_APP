@@ -8,6 +8,7 @@ export const useChatWebsocket = (
 ) => {
   const wsRef = useRef<WebSocket | null>(null);
   const onPacketRef = useRef(onPacket);
+  const [reconnectCounter, setReconnectCounter] = useState(0);
 
   useEffect(() => {
     onPacketRef.current = onPacket;
@@ -20,8 +21,17 @@ export const useChatWebsocket = (
     const ws = new WebSocket(`${WS_URL}/ws/${chatId}`);
     wsRef.current = ws;
 
+    let pingInterval: number;
+
     ws.onopen = () => {
       console.log("WebSocket connected:", chatId);
+
+      pingInterval = setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+          // Sending a dummy ping packet
+          ws.send(JSON.stringify({ type: "ping" }));
+        }
+      }, 30000);
     };
 
     ws.onerror = (e) => {
@@ -30,8 +40,11 @@ export const useChatWebsocket = (
 
     ws.onclose = (e) => {
       console.log("WebSocket Closed:", e.code, e.reason);
+      clearInterval(pingInterval);
+
       setTimeout(() => {
         console.log("Attempting to reconnect...");
+        setReconnectCounter((prev) => prev + 1);
       }, 3000);
     };
 
@@ -47,7 +60,7 @@ export const useChatWebsocket = (
         wsRef.current = null;
       }
     };
-  }, [chatId]);
+  }, [chatId, reconnectCounter]);
 
   //send new packet to chat_id or return if ws not ready
   const sendPacket = useCallback((packet: packetInterface) => {

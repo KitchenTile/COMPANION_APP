@@ -45,6 +45,7 @@ import {
 } from "expo-audio";
 import VoiceComponentView from "@/components/VoiceComponent";
 import { ThemedView } from "@/components/ThemedView";
+import { useGlobalWebSocket } from "@/utils/WebSocketManager";
 
 const ChatPage = () => {
   // user from store
@@ -54,8 +55,10 @@ const ChatPage = () => {
 
   const [messages, setMessages] = useState<messageInterface[]>([]);
   const [chats, setChats] = useState<Chat[] | null>(null);
-  const [chatId, setChatId] = useState<string | null>(null);
 
+  const { sendPacket } = useGlobalWebSocket();
+  const chatId = useAuthStore((state) => state.chatId);
+  const latestChatPacket = useAuthStore((state) => state.latestChatPacket);
   const [userInput, setUserInput] = useState<string>("");
   const [taskId, setTaskId] = useState<string | null>(null);
   const [pendingToolId, setPendingToolId] = useState<string | null>(null);
@@ -90,7 +93,6 @@ const ChatPage = () => {
 
       // if chats is a array set state
       setChats(chats);
-      setChatId(chats[0].chat_id);
       console.log(userId, chatId);
       console.log(chatId);
       console.log(userId);
@@ -166,66 +168,102 @@ const ChatPage = () => {
     // console.log("stop recording");
   };
 
-  // handle info from websocket
-  const handleIncomingPacket = async (
-    packet: packetInterface | webPacketInterface
-  ) => {
-    if (!user || !chatId) return;
-    if ("performative" in packet) {
-      if (packet.performative === "REQUEST") {
-        setPendingToolId(packet.pending_tool_id);
-        setTaskId(packet.task_id);
-        console.log("WE GOT HERE");
-        console.log(packet.content.audio_url);
-        setAudioUri(packet.content.audio_url);
+  // // handle info from websocket
+  // const handleIncomingPacket = async (
+  //   packet: packetInterface | webPacketInterface
+  // ) => {
+  //   if (!user || !chatId) return;
+  //   if ("performative" in packet) {
+  //     if (packet.performative === "REQUEST") {
+  //       setPendingToolId(packet.pending_tool_id);
+  //       setTaskId(packet.task_id);
+  //       console.log("WE GOT HERE");
+  //       console.log(packet.content.audio_url);
+  //       setAudioUri(packet.content.audio_url);
+  //     }
+
+  //     console.log("-- PACKET ARRIVED --");
+  //     console.log(packet);
+
+  //     if (packet.performative === "INFORM") {
+  //       setPendingToolId(null);
+  //       setTaskId(null);
+
+  //       if (packet.polyline) {
+  //         setPolylineFunction(packet.polyline);
+  //       }
+
+  //       if (packet.individualPolylines) {
+  //         console.log(packet.individualPolylines);
+  //         setIndividualPolylinesFunction(packet.individualPolylines);
+  //       }
+
+  //       if (packet.graph) {
+  //         setGraph(packet.graph);
+  //       }
+
+  //       //and add bot message to ui before fetching
+  //       const modelMesage = {
+  //         role: "assistant",
+  //         content: packet.content.message,
+  //         timestamp: new Date().toISOString(),
+  //       };
+
+  //       setMessages((prev) => (prev ? [...prev, modelMesage] : [modelMesage]));
+  //       console.log("WE GOT HERE, to inform");
+
+  //       setAudioUri(packet.content.audio_url);
+  //     }
+  //     const messages = await getChatMessages(user.id, chatId);
+  //     setMessages(messages);
+
+  //     setLoadingMessage(false);
+  //   }
+  // };
+
+  useEffect(() => {
+    if (!latestChatPacket) return;
+
+    const packet = latestChatPacket;
+
+    if (packet.performative === "REQUEST") {
+      setPendingToolId(packet.pending_tool_id);
+      setTaskId(packet.task_id);
+      setAudioUri(packet.content.audio_url);
+    }
+
+    if (packet.performative === "INFORM") {
+      setPendingToolId(null);
+      setTaskId(null);
+      setAudioUri(packet.content.audio_url);
+
+      if (packet.polyline) {
+        setPolylineFunction(packet.polyline);
       }
 
-      console.log("-- PACKET ARRIVED --");
-      console.log(packet);
-
-      if (packet.performative === "INFORM") {
-        setPendingToolId(null);
-        setTaskId(null);
-
-        if (packet.polyline) {
-          setPolylineFunction(packet.polyline);
-        }
-
-        if (packet.individualPolylines) {
-          console.log(packet.individualPolylines);
-          setIndividualPolylinesFunction(packet.individualPolylines);
-        }
-
-        if (packet.graph) {
-          setGraph(packet.graph);
-        }
-
-        //and add bot message to ui before fetching
-        const modelMesage = {
-          role: "assistant",
-          content: packet.content.message,
-          timestamp: new Date().toISOString(),
-        };
-
-        setMessages((prev) => (prev ? [...prev, modelMesage] : [modelMesage]));
-        console.log("WE GOT HERE, to inform");
-
-        setAudioUri(packet.content.audio_url);
+      if (packet.individualPolylines) {
+        console.log(packet.individualPolylines);
+        setIndividualPolylinesFunction(packet.individualPolylines);
       }
-      const messages = await getChatMessages(user.id, chatId);
-      setMessages(messages);
+
+      if (packet.graph) {
+        setGraph(packet.graph);
+      }
+
+      const modelMessage = {
+        role: "assistant",
+        content: packet.content.message,
+        timestamp: new Date().toISOString(),
+      };
+
+      setMessages((prev) => [...(prev || []), modelMessage]);
 
       setLoadingMessage(false);
     }
-
-    if ("type" in packet) {
-      console.log("A graph only packet recieved");
-      setGraph(packet.data);
-    }
-  };
+  }, [latestChatPacket]);
 
   // websocket hook to handle state and
-  const sendPacket = useChatWebsocket(chatId, handleIncomingPacket);
+  // const sendPacket = useChatWebsocket(chatId, handleIncomingPacket);
 
   const handleDerail = (polyline: DecodedPoint[]) => {
     const origin = polyline[0];
@@ -369,7 +407,9 @@ const ChatPage = () => {
             style={{ flex: 1 }}
             keyboardVerticalOffset={Platform.OS === "ios" ? -90 : 0}
           >
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <TouchableWithoutFeedback
+              onPress={Platform.OS === "web" ? undefined : Keyboard.dismiss}
+            >
               <View style={styles.masterContainer}>
                 <ScrollView
                   style={styles.scrollView}

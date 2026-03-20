@@ -12,11 +12,15 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   error: null,
   session: null,
   graph: null,
+  chatId: null,
+  latestChatPacket: null,
 
-  //polylines nad graph
+  //polylines, chatId, wspackets nad graph setters
   setPolyline: (polyline: any) => set({ polyline: polyline }),
   setPolylines: (polylines: any) => set({ polylines: polylines }),
   setGraph: (graph: any) => set({ graph: graph }),
+  setChatId: (chatId: string | null) => set({ chatId: chatId }),
+  setLatestChatPacket: (packet: any) => set({ latestChatPacket: packet }),
 
   //user login function
   login: async (email: string, password: string) => {

@@ -18,6 +18,12 @@ export interface Chat {
   created_at: string;
 }
 
+export interface messageInterface {
+  content: object | string;
+  role: string;
+  timestamp: string;
+}
+
 export interface AuthStore {
   isLoggedIn: boolean;
   isLoading: boolean;
@@ -27,10 +33,14 @@ export interface AuthStore {
   session: Session | null;
   error: any;
   graph: any;
+  chatId: string | null;
+  latestChatPacket: any;
 
   setPolyline: (polyline: DecodedPoint[] | null) => void;
   setPolylines: (polylines: DecodedPoint[][] | null) => void;
   setGraph: (graph: any) => void;
+  setChatId: (chatId: string | null) => void;
+  setLatestChatPacket: (packet: any) => void;
   login: (email: string, password: string) => Promise<void>;
   signUp: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -38,12 +48,6 @@ export interface AuthStore {
 }
 
 export type decodedPolyline2 = { [key: string]: number };
-
-export interface messageInterface {
-  content: object | string;
-  role: string;
-  timestamp: string;
-}
 
 export type PacketContent = {
   message: string;
