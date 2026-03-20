@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import * as Linking from "expo-linking";
-import * as WebBrowser from "expo-web-browser";
 import { useAuthStore } from "@/store/store";
 import { supabase } from "@/supabase/supabase";
 
@@ -18,8 +17,6 @@ import { supabase } from "@/supabase/supabase";
 import AuthForm from "./AuthForm";
 import ProfileDashboard from "./ProfileDashboard";
 import ParallaxScrollView from "./ParallaxScrollView";
-
-WebBrowser.maybeCompleteAuthSession();
 
 export interface UserProfile {
   identity: {
@@ -38,7 +35,7 @@ export interface UserProfile {
   };
 }
 
-export default function HomeScreenNative() {
+export default function HomeView() {
   const user = useAuthStore((state) => state.user);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 

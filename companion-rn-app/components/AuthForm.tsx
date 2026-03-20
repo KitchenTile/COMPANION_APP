@@ -30,7 +30,7 @@ export default function AuthForm() {
   const logInFunction = async () => {
     // if the input fields are empty, return
     if (email === "" || password === "") return;
-    console.log(`⁠logging in ${email}`);
+    console.log(`logging in ${email}`);
     //log in
     await login(email, password);
   };

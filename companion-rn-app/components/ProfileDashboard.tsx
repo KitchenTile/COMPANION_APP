@@ -1,16 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
-import * as Linking from "expo-linking";
-import * as WebBrowser from "expo-web-browser";
-import { useAuthStore } from "@/store/store";
-import { supabase } from "@/supabase/supabase";
+import React from "react";
+import { View, StyleSheet } from "react-native";
 
 // We will create these two components next!
 import { ThemedView } from "./ThemedView";
 import { ThemedText } from "./ThemedText";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-
-WebBrowser.maybeCompleteAuthSession();
 
 export interface UserProfile {
   identity: {

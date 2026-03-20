@@ -29,7 +29,7 @@ export interface UserProfile {
   };
 }
 
-export default function HomeScreenWeb() {
+export default function HomeView() {
   const user = useAuthStore((state) => state.user);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
