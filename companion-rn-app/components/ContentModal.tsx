@@ -1,4 +1,7 @@
-import React, { Children } from "react";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { FontAwesome6 } from "@expo/vector-icons";
+import React from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -9,9 +12,6 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
-import { FontAwesome6 } from "@expo/vector-icons";
 
 interface ArrivalModalProps {
   visible: boolean;

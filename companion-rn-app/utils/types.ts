@@ -35,12 +35,14 @@ export interface AuthStore {
   graph: any;
   chatId: string | null;
   latestChatPacket: any;
+  currentTripId: string | null;
 
   setPolyline: (polyline: DecodedPoint[] | null) => void;
   setPolylines: (polylines: DecodedPoint[][] | null) => void;
   setGraph: (graph: any) => void;
   setChatId: (chatId: string | null) => void;
   setLatestChatPacket: (packet: any) => void;
+  setCurrentTripId: (id: string | null) => void;
   login: (email: string, password: string) => Promise<void>;
   signUp: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;

@@ -1,7 +1,6 @@
 import { supabase } from "@/supabase/supabase";
 import { AuthStore } from "@/utils/types";
 import { create } from "zustand";
-import { DecodedPoint } from "@/utils/types";
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
   isLoggedIn: false,
@@ -13,6 +12,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   session: null,
   graph: null,
   chatId: null,
+  currentTripId: null,
   latestChatPacket: null,
 
   //polylines, chatId, wspackets nad graph setters
@@ -21,6 +21,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   setGraph: (graph: any) => set({ graph: graph }),
   setChatId: (chatId: string | null) => set({ chatId: chatId }),
   setLatestChatPacket: (packet: any) => set({ latestChatPacket: packet }),
+  setCurrentTripId: (id: string | null) => set({ currentTripId: id }),
 
   //user login function
   login: async (email: string, password: string) => {

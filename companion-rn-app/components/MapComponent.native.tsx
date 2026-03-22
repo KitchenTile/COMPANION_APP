@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
-import MapView, { Circle, Marker, Polyline } from "react-native-maps";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { useAuthStore } from "@/store/store";
-import { useLocationTracker } from "@/hooks/useLocationTracker";
 import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { colours } from "@/constants/Colors";
+import { useLocationTracker } from "@/hooks/useLocationTracker";
+import { useRouteMonitor } from "@/hooks/useRouteMonitor";
+import { useAuthStore } from "@/store/store";
+import { supabase } from "@/supabase/supabase";
 import {
   AntDesign,
   Feather,
@@ -12,13 +13,12 @@ import {
   FontAwesome6,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
-import { useRouteMonitor } from "@/hooks/useRouteMonitor";
-import { ThemedView } from "@/components/ThemedView";
-import { colours } from "@/constants/Colors";
 import { useAudioPlayer } from "expo-audio";
-import { Dimensions } from "react-native";
-import ContentModal from "./ContentModal";
+import React, { useEffect, useMemo, useState } from "react";
+import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
+import MapView, { Marker, Polyline } from "react-native-maps";
 import BugReportComponent from "./BugReportComponent";
+import ContentModal from "./ContentModal";
 
 export default function App() {
   //TODO:
@@ -28,8 +28,12 @@ export default function App() {
   const user = useAuthStore((state) => state.user);
 
   const polylines = useAuthStore((state) => state.polylines);
+
+  const currentTripId = useAuthStore((state) => state.currentTripId);
+
   const [showArrivalModal, setShowArrivalModal] = useState(false);
   const [showBugModal, setShowBugModal] = useState(false);
+  const [audioPlays, setAudioPlays] = useState<number>(0);
 
   const screenWidth = Dimensions.get("window").width;
 
@@ -59,8 +63,12 @@ export default function App() {
     console.log(currentActionVoice);
   }, [currentActionVoice]);
 
+  const isRouteActive = useMemo(() => {
+    return polylines && polylines.length > 0 && !userArrived;
+  }, [polylines, userArrived]);
+
   const calculateRouteLengths = (
-    polylines: { lat: number; lng: number }[][] | null
+    polylines: { lat: number; lng: number }[][] | null,
   ) => {
     if (!polylines) return;
     let polylineDots = 0;
@@ -86,12 +94,12 @@ export default function App() {
       polyline!.map((point) => ({
         latitude: point.lat,
         longitude: point.lng,
-      }))
+      })),
     );
 
   const player = useAudioPlayer(currentActionVoice);
 
-  const playStepAudio = () => {
+  const playStepAudio = async () => {
     if (!currentActionVoice || !player) return;
 
     console.log(`Commanding play for: ${currentActionVoice}`);
@@ -102,18 +110,32 @@ export default function App() {
       return;
     }
 
+    console.log(audioPlays);
+    const newPlayCount = audioPlays + 1;
+    setAudioPlays(newPlayCount);
+
+    console.log(newPlayCount);
+
+    console.log(currentTripId);
+
+    const { error } = await supabase
+      .from("trip_history")
+      .update({ prevention_audio_plays: newPlayCount })
+      .eq("id", currentTripId);
+
+    if (error) console.log(error);
+
     player.seekTo(0);
     player.play();
   };
 
-  // Calculate the user's position (0% to 100%) across the entire route
+  // Calculate the user's position across the entire route
   const userProgressPercentage = useMemo(() => {
     if (!polylines || !location) return 0;
 
     let totalDots = 0;
     let completedDots = 0;
 
-    // 1. Count dots from fully completed previous steps
     for (let i = 0; i < polylines.length; i++) {
       totalDots += polylines[i].length;
       if (i < currentPolylineIndex) {
@@ -121,7 +143,6 @@ export default function App() {
       }
     }
 
-    // 2. Estimate progress on the CURRENT step by finding the closest coordinate
     const currentLine = polylines[currentPolylineIndex];
     if (currentLine) {
       let minDistance = Infinity;
@@ -130,7 +151,6 @@ export default function App() {
       const userLat = location.coords.latitude;
       const userLng = location.coords.longitude;
 
-      // Simple distance check to find the closest dot on the current line
       currentLine.forEach((point, index) => {
         const dx = point.lat - userLat;
         const dy = point.lng - userLng;
@@ -143,7 +163,6 @@ export default function App() {
 
       completedDots += closestPointIndex;
     }
-    // 3. Calculate final percentage, capped between 0 and 100
     const rawPercentage = (completedDots / totalDots) * 100;
     return Math.max(0, Math.min(100, rawPercentage));
   }, [polylines, currentPolylineIndex, location]);
@@ -188,15 +207,14 @@ export default function App() {
             </View>
           </View>
         </Marker>
-        {/* Default Polyline */}
         {mapCoordinates &&
           mapCoordinates.map((polyline, index) => (
-            <View>
+            <View key={`polyline-group-${index}`}>
               <Polyline
                 coordinates={polyline}
                 strokeColor={colours[index].replace(
                   "$",
-                  currentPolylineIndex === index ? "1" : "0.5"
+                  currentPolylineIndex === index ? "1" : "0.5",
                 )}
                 strokeWidth={currentPolylineIndex == index ? 8 : 5}
                 zIndex={0}
@@ -239,7 +257,7 @@ export default function App() {
               </Marker>
             </View>
           ))}
-        {polylines && (
+        {polylines && polylines.length > 0 && !userArrived && (
           <ThemedView
             style={[
               styles.infoContainer,
@@ -254,7 +272,11 @@ export default function App() {
             ]}
           >
             <ThemedView
-              style={{ flexDirection: "row", gap: 60, alignItems: "center" }}
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
             >
               <ThemedText
                 type="title"
@@ -265,72 +287,65 @@ export default function App() {
                   fontSize: 28,
                 }}
               >
-                On your way Home
+                On your way!
               </ThemedText>
               <ThemedText style={{ color: "#723feb", fontWeight: 600 }}>
                 Step {currentPolylineIndex + 1} of {polylines.length}
               </ThemedText>
             </ThemedView>
+
             <View style={styles.routeTracker}>
               <View style={styles.lineContainer}>
-                <View style={{ position: "absolute", top: -13, left: -30 }}>
-                  <FontAwesome name="hospital-o" size={24} color="#723feb" />
-                </View>
-                {polylinePercentages?.map((line, index) => (
+                <FontAwesome name="hospital-o" size={24} color="#723feb" />
+
+                <View style={styles.progressBarWrapper}>
+                  {polylinePercentages?.map((line, index) => (
+                    <View
+                      key={`progress-line-${index}`}
+                      style={[
+                        styles.line,
+                        {
+                          width: `${line}%`,
+                          backgroundColor: colours[index].replace(
+                            "$",
+                            currentPolylineIndex === index ? "1" : "0.6",
+                          ),
+                          borderBottomStartRadius: index === 0 ? 50 : 0,
+                          borderTopStartRadius: index === 0 ? 50 : 0,
+                          borderBottomEndRadius:
+                            index === polylinePercentages.length - 1 ? 50 : 0,
+                          borderTopEndRadius:
+                            index === polylinePercentages.length - 1 ? 50 : 0,
+                        },
+                      ]}
+                    />
+                  ))}
+
                   <View
                     style={[
-                      styles.line,
-                      {
-                        width: `${line}%`,
-                        backgroundColor: colours[index].replace(
-                          "$",
-                          currentPolylineIndex === index ? "1" : "0.6"
-                        ),
-                        borderBottomStartRadius: index === 0 ? 50 : 0,
-                        borderTopStartRadius: index === 0 ? 50 : 0,
-                        borderBottomEndRadius:
-                          index === polylinePercentages.length - 1 ? 50 : 0,
-                        borderTopEndRadius:
-                          index === polylinePercentages.length - 1 ? 50 : 0,
-                      },
+                      styles.progressIndicator,
+                      { left: `${userProgressPercentage}%` },
                     ]}
-                  />
-                ))}
-                <View style={{ position: "absolute", top: -13.5, left: 272 }}>
-                  <Feather name="home" size={24} color="#723feb" />
-                </View>
-                <View
-                  style={{
-                    position: "absolute",
-                    top: "-350%",
-                    left: `${userProgressPercentage}%`,
-                    marginLeft: -10,
-                  }}
-                >
-                  <View style={{ position: "absolute" }}>
+                  >
                     <FontAwesome5
                       name="map-marker"
                       size={25}
                       color="#280079ff"
                     />
-                  </View>
-                  <View
-                    style={{
-                      position: "absolute",
-                      top: "50%",
-                      left: "50%",
-                      transform: "translate(30%, 30%)",
-                    }}
-                  >
-                    <MaterialCommunityIcons
-                      name="bus-double-decker"
-                      size={12}
-                      color="white"
-                    />
+                    <View style={styles.progressIndicatorIcon}>
+                      <MaterialCommunityIcons
+                        name="bus-double-decker"
+                        size={12}
+                        color="white"
+                      />
+                    </View>
                   </View>
                 </View>
+
+                <Feather name="home" size={24} color="#723feb" />
               </View>
             </View>
+
             <View
               style={{
                 flexDirection: "row",
@@ -423,8 +438,7 @@ const styles = StyleSheet.create({
   },
 
   infoContainer: {
-    height: 200,
-    width: 380,
+    width: "95%",
     position: "absolute",
     bottom: 100,
     borderRadius: 20,
@@ -435,61 +449,28 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     alignSelf: "center",
   },
-
-  routeTracker: {
-    height: 70,
-    width: "100%",
-    textAlign: "center",
-    backgroundColor: "#ffffffff",
-
-    borderRadius: 20,
-    borderStyle: "solid",
-    borderWidth: 2,
-    borderColor: "#733feb48",
-    justifyContent: "center",
-
-    shadowColor: "#000000b4",
-    shadowOffset: { width: 0, height: 5 },
-    shadowRadius: 10,
-    shadowOpacity: 0.1,
-    boxShadow: "rgba(0, 0, 0, 0.01) 0px 5px 50px 0px",
-  },
-
-  lineContainer: {
-    marginLeft: "auto",
-    marginRight: "auto",
-    width: "75%",
-    transform: "translateY(8%)",
-    display: "flex",
-    flexDirection: "row",
-  },
-
-  line: {
-    height: 8,
-  },
-
   warningSign: {
-    height: 40,
-    width: 30,
-    borderRadius: 15,
-    borderStyle: "solid",
+    height: 44,
+    width: 32,
+    borderRadius: 22,
     borderWidth: 2,
     borderColor: "rgba(251, 55, 55, 1)",
     backgroundColor: "rgba(254, 193, 193, 1)",
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   warningContainer: {
-    alignItems: "center",
+    flex: 1,
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
     borderRadius: 15,
-    borderStyle: "solid",
     borderWidth: 2,
     borderColor: "rgba(251, 55, 55, 1)",
     backgroundColor: "rgba(254, 193, 193, 1)",
-    flex: 1,
-    paddingLeft: 10,
-    paddingRight: 10,
+    paddingHorizontal: 15,
+    minHeight: 44,
   },
 
   shadow: {
@@ -525,5 +506,42 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     zIndex: 10,
+  },
+  routeTracker: {
+    height: 70,
+    width: "100%",
+    backgroundColor: "#ffffffff",
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: "#733feb48",
+    justifyContent: "center",
+    paddingHorizontal: 15,
+  },
+  lineContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+  },
+  progressBarWrapper: {
+    flex: 1,
+    flexDirection: "row",
+    marginHorizontal: 15,
+    transform: "translateY(5%)",
+    position: "relative",
+    alignItems: "center",
+  },
+  line: {
+    height: 8,
+  },
+  progressIndicator: {
+    position: "absolute",
+    top: -20,
+    transform: [{ translateX: -8.5 }],
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  progressIndicatorIcon: {
+    position: "absolute",
+    top: 5,
   },
 });

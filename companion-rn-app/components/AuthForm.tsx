@@ -1,10 +1,9 @@
-import { StyleSheet, TextInput, TouchableOpacity } from "react-native";
+import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useEffect, useState } from "react";
-import React from "react";
 import { useAuthStore } from "@/store/store";
+import React, { useState } from "react";
 
 export default function AuthForm() {
   // imports from store
@@ -36,13 +35,17 @@ export default function AuthForm() {
   };
 
   return (
-    <ThemedView>
+    <ThemedView style={styles.formCard}>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">
-          {loginState ? "Log In" : "Sign Up"}
+        <ThemedText type="title" style={styles.titleText}>
+          {loginState ? "Log In" : "Create Account"}
         </ThemedText>
         <TouchableOpacity onPress={() => setLoginState(!loginState)}>
-          <ThemedText>{loginState ? "Or sign up" : "Or log in"}</ThemedText>
+          <ThemedText style={styles.toggleText}>
+            {loginState
+              ? "Need an account? Sign up"
+              : "Already have one? Log in"}
+          </ThemedText>
         </TouchableOpacity>
       </ThemedView>
       <ThemedView>
@@ -77,6 +80,7 @@ export default function AuthForm() {
             style={styles.input}
           />
         </ThemedView>
+        <View style={styles.line} />
         <TouchableOpacity
           style={styles.loginSignupButton}
           onPress={loginState ? logInFunction : singUpFunction}
@@ -97,45 +101,57 @@ export default function AuthForm() {
 }
 
 const styles = StyleSheet.create({
+  formCard: {
+    backgroundColor: "#ffffff",
+    padding: 40,
+    borderRadius: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.05,
+    shadowRadius: 20,
+    borderWidth: 1,
+    borderColor: "#b3b3b36e",
+    width: "100%",
+    gap: 10,
+  },
   titleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginVertical: 15,
+    alignItems: "flex-start",
+    marginBottom: 20,
     width: "100%",
   },
-  //   stepContainer: {
-  //     gap: 8,
-  //     marginBottom: 8,
-  //   },
-
-  //   gmailButton: {
-  //     padding: 10,
-  //     backgroundColor: "#DE5246",
-  //     borderRadius: 20,
-  //     borderColor: "rgba(193, 49, 36, 1)",
-  //     borderStyle: "solid",
-  //     borderWidth: 1,
-  //   },
-
-  loginSignupButton: {
-    padding: 10,
-    backgroundColor: "#DE5246",
-    borderRadius: 20,
-    borderColor: "rgba(193, 49, 36, 1)",
-    borderStyle: "solid",
-    borderWidth: 1,
-    margin: 3,
+  titleText: {
+    fontSize: 32,
+    fontWeight: "800",
+    color: "#1E293B",
   },
-
+  toggleText: {
+    color: "#723feb",
+    marginTop: 8,
+    fontWeight: "600",
+  },
   input: {
     backgroundColor: "#ffffffff",
     color: "#1E293B",
-    padding: 12,
+    padding: 16,
     borderRadius: 8,
-    marginBottom: 10,
-    borderColor: "#1E293B",
+    marginBottom: 12,
+    borderColor: "#733feb6e",
     borderStyle: "solid",
-    borderWidth: 2,
+    borderWidth: 1,
+    fontSize: 14,
+  },
+  loginSignupButton: {
+    padding: 16,
+    backgroundColor: "#723feb",
+    borderRadius: 8,
+    marginTop: 10,
+    alignItems: "center",
+  },
+  line: {
+    height: 2,
+    width: "80%",
+    backgroundColor: "#b3b3b36e",
+    alignSelf: "center",
+    marginVertical: 5,
   },
 });

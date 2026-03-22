@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
-import * as Linking from "expo-linking";
-import * as WebBrowser from "expo-web-browser";
 import { useAuthStore } from "@/store/store";
 import { supabase } from "@/supabase/supabase";
+import * as Linking from "expo-linking";
+import * as WebBrowser from "expo-web-browser";
+import React, { useEffect, useState } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
 
 // We will create these two components next!
 import AuthForm from "./AuthForm";
@@ -91,17 +91,18 @@ export default function HomeView() {
 const styles = StyleSheet.create({
   pageContainer: {
     flex: 1,
-    backgroundColor: "rgba(255, 255, 253, 1)",
+    backgroundColor: "#F8FAFC",
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: "center",
-    paddingVertical: 60,
+    alignItems: "center",
+    paddingVertical: 40,
     paddingHorizontal: 20,
   },
   webConstraint: {
     width: "100%",
-    maxWidth: 650,
+    maxWidth: 500,
     alignSelf: "center",
   },
 

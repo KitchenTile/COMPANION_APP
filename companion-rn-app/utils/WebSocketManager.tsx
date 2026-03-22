@@ -1,16 +1,15 @@
+import { fetchChat } from "@/api/fetchAPI";
+import { useAuthStore } from "@/store/store";
+import { WS_URL } from "@/utils/api";
+import { packetInterface, webPacketInterface } from "@/utils/types";
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useRef,
   useState,
-  useCallback,
 } from "react";
-import { useAuthStore } from "@/store/store";
-import { fetchChat } from "@/api/fetchAPI";
-import { WS_URL } from "@/utils/api";
-import { packetInterface, webPacketInterface } from "@/utils/types";
-import { useRouteMonitor } from "@/hooks/useRouteMonitor";
 
 // Create a context so any component can access the sendPacket function
 const WebSocketContext = createContext<{
@@ -27,7 +26,7 @@ export const WebSocketProvider = ({
   const setChatId = useAuthStore((state) => state.setChatId);
   const setGraph = useAuthStore((state) => state.setGraph);
   const setLatestChatPacket = useAuthStore(
-    (state) => state.setLatestChatPacket
+    (state) => state.setLatestChatPacket,
   );
 
   const wsRef = useRef<WebSocket | null>(null);
@@ -67,7 +66,7 @@ export const WebSocketProvider = ({
 
     ws.onmessage = (event) => {
       const packet: packetInterface | webPacketInterface = JSON.parse(
-        event.data
+        event.data,
       );
       if (
         "type" in packet &&

@@ -1,9 +1,33 @@
 import {
+  fetchChat,
+  getChatMessages,
+  sendAudio,
+  sendChatMessage,
+} from "@/api/fetchAPI";
+import { ThemedView } from "@/components/ThemedView";
+import VoiceComponentView from "@/components/VoiceComponent";
+import { useLocationTracker } from "@/hooks/useLocationTracker";
+import { useRouteMonitor } from "@/hooks/useRouteMonitor";
+import { useAuthStore } from "@/store/store";
+import { Chat, DecodedPoint, messageInterface } from "@/utils/types";
+import { useGlobalWebSocket } from "@/utils/WebSocketManager";
+import { FontAwesome6 } from "@expo/vector-icons";
+import { PostgrestError } from "@supabase/supabase-js";
+import {
+  AudioModule,
+  RecordingPresets,
+  setAudioModeAsync,
+  useAudioPlayer,
+  useAudioRecorder,
+  useAudioRecorderState,
+} from "expo-audio";
+import React, { useEffect, useRef, useState } from "react";
+import {
   Alert,
-  Dimensions,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -11,41 +35,8 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import React, { useEffect, useRef, useState } from "react";
-import {
-  fetchChat,
-  getChatMessages,
-  sendAudio,
-  sendChatMessage,
-} from "@/api/fetchAPI";
-import { ScrollView } from "react-native";
-import TypingIndicator from "@/components/ui/TypingBubbleDots";
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
-import {
-  Chat,
-  DecodedPoint,
-  messageInterface,
-  packetInterface,
-  webPacketInterface,
-} from "@/utils/types";
-import { useLocationTracker } from "@/hooks/useLocationTracker";
-import { useChatWebsocket } from "@/hooks/useChatWebSocket";
-import { useRouteMonitor } from "@/hooks/useRouteMonitor";
-import { useAuthStore } from "@/store/store";
-import { PostgrestError } from "@supabase/supabase-js";
-import { FontAwesome6 } from "@expo/vector-icons";
-import {
-  useAudioRecorder,
-  AudioModule,
-  RecordingPresets,
-  setAudioModeAsync,
-  useAudioRecorderState,
-  useAudioPlayer,
-} from "expo-audio";
-import VoiceComponentView from "@/components/VoiceComponent";
-import { ThemedView } from "@/components/ThemedView";
-import { useGlobalWebSocket } from "@/utils/WebSocketManager";
 
 const ChatPage = () => {
   // user from store
@@ -54,10 +45,12 @@ const ChatPage = () => {
   const [chatVisible, setChatVisible] = useState<boolean>(false);
 
   const [messages, setMessages] = useState<messageInterface[]>([]);
-  const [chats, setChats] = useState<Chat[] | null>(null);
 
   const { sendPacket } = useGlobalWebSocket();
   const chatId = useAuthStore((state) => state.chatId);
+  const setChatId = useAuthStore((state) => state.setChatId);
+  const setCurrentTripId = useAuthStore((state) => state.setCurrentTripId);
+  const currentTripId = useAuthStore((state) => state.currentTripId);
   const latestChatPacket = useAuthStore((state) => state.latestChatPacket);
   const [userInput, setUserInput] = useState<string>("");
   const [taskId, setTaskId] = useState<string | null>(null);
@@ -83,7 +76,7 @@ const ChatPage = () => {
     const fetchUserChats = async (userId: string) => {
       console.log("fetching chats");
       const chats: Chat[] | undefined | PostgrestError = await fetchChat(
-        user.id
+        user.id,
       );
 
       if (!Array.isArray(chats) || chats.length === 0) {
@@ -92,7 +85,6 @@ const ChatPage = () => {
       }
 
       // if chats is a array set state
-      setChats(chats);
       console.log(userId, chatId);
       console.log(chatId);
       console.log(userId);
@@ -234,7 +226,7 @@ const ChatPage = () => {
 
     if (packet.performative === "INFORM") {
       setPendingToolId(null);
-      setTaskId(null);
+      setCurrentTripId(packet.task_id);
       setAudioUri(packet.content.audio_url);
 
       if (packet.polyline) {
@@ -278,8 +270,8 @@ const ChatPage = () => {
         performative: "INFORM",
         message_id: uuidv4(),
         user_id: user.id,
-        task_id: taskId ?? uuidv4(),
-        chat_id: chatId ? chatId : uuidv4(),
+        task_id: currentTripId ?? uuidv4(),
+        chat_id: chatId ?? uuidv4(),
         pending_tool_id: pendingToolId,
         sender: "USER",
         receiver: "ORCHESTRATOR_AGENT",
@@ -311,6 +303,10 @@ const ChatPage = () => {
     }
   }, [userArrived]);
 
+  useEffect(() => {
+    console.log(chatId);
+  }, [chatId]);
+
   //send HTTP request to backend with user message
   const sendMessage = async (messageType: string) => {
     try {
@@ -320,6 +316,12 @@ const ChatPage = () => {
 
       const message = userInput;
 
+      let activeChatId = chatId;
+      if (!activeChatId) {
+        activeChatId = uuidv4();
+        setChatId(activeChatId);
+      }
+
       // add placeholder message to the chat
       const placeholderMessage = {
         role: "user",
@@ -327,7 +329,7 @@ const ChatPage = () => {
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) =>
-        prev ? [...prev, placeholderMessage] : [placeholderMessage]
+        prev ? [...prev, placeholderMessage] : [placeholderMessage],
       );
 
       //set inut back to an empty string
@@ -342,7 +344,7 @@ const ChatPage = () => {
       if (messageType === "text") {
         console.log("RES IS TEXT");
         res = await sendChatMessage({
-          chat_id: chats ? chats[0].chat_id : uuidv4(),
+          chat_id: activeChatId,
           user_id: user.id,
           message: message,
           task_id: taskId,
@@ -354,6 +356,11 @@ const ChatPage = () => {
       }
 
       console.log(res);
+
+      // if it's a new chat, add the chat Id to open the websocket connection
+      if (!chatId) {
+        setChatId(res.chat_id);
+      }
 
       //set task id for the current "issue"
       setTaskId(res.task_id);

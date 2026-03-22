@@ -1,8 +1,7 @@
-import React, { useEffect } from "react";
-import { ThemedView } from "./ThemedView";
-import { StyleSheet, TouchableOpacity } from "react-native";
-import { ThemedText } from "./ThemedText";
 import { FontAwesome6, Ionicons } from "@expo/vector-icons";
+import React, { useEffect } from "react";
+import { StyleSheet, TouchableOpacity } from "react-native";
+import { ThemedView } from "./ThemedView";
 import TypingIndicator from "./ui/TypingBubbleDots";
 
 const VoiceComponentView = ({
@@ -68,6 +67,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "white",
   },
   micButton: {
     width: 150,
@@ -90,5 +90,6 @@ const styles = StyleSheet.create({
     right: 10,
     top: 120,
     zIndex: 10,
+    elevation: 10,
   },
 });

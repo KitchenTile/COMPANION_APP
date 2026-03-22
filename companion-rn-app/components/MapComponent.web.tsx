@@ -1,23 +1,22 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { calculateRouteGraph } from "@/api/fetchAPI";
+import { useAuthStore } from "@/store/store";
+import transformDataForD3 from "@/utils/mapDataTransformer";
+import { TreeNode } from "@/utils/types";
 import {
-  ReactFlow,
-  Panel,
   Background,
   Controls,
   Handle,
   Position,
-  useNodesState,
+  ReactFlow,
   useEdgesState,
+  useNodesState,
 } from "@xyflow/react";
-import * as d3 from "d3-hierarchy";
 import "@xyflow/react/dist/style.css";
-import { calculateRouteGraph } from "@/api/fetchAPI";
-import transformDataForD3 from "@/utils/mapDataTransformer";
-import { TreeNode } from "@/utils/types";
+import * as d3 from "d3-hierarchy";
+import { LinearGradient } from "expo-linear-gradient";
+import React, { useEffect, useMemo, useState } from "react";
 import LoadingComponent from "./LoadingComponent.web";
 import NodeModal from "./NodeModal";
-import { LinearGradient } from "expo-linear-gradient";
-import { useAuthStore } from "@/store/store";
 
 const CustomNode = ({ data, isConnectable }: any) => {
   const isPrevention = data.type === "prevention";
@@ -97,7 +96,7 @@ const getEdgeColor = (probability: number | undefined) => {
 
   const clamped = Math.max(
     0,
-    Math.min(1, probability < 1 ? probability : probability / 10)
+    Math.min(1, probability < 1 ? probability : probability / 10),
   );
 
   const index = Math.floor(clamped * (colorWave.length - 1));
@@ -108,15 +107,15 @@ export default function App() {
   const user = useAuthStore((state) => state.user);
   const [selectedNode, setSelectedNode] = useState(null);
   const [selectedPrevention, setSelectedPrevention] = useState<string | null>(
-    null
+    null,
   );
   const [travelData, setTravelData] = useState<any>();
   const [loading, setLoading] = useState<boolean>(false);
   const [origin, setOrigin] = useState<string>(
-    "Hendon Library, London NW4 4BQ"
+    "Hendon Library, London NW4 4BQ",
   );
   const [destination, setDestination] = useState<string>(
-    "Brent Cross, London NW4 3AY"
+    "Brent Cross, London NW4 3AY",
   );
   const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -133,7 +132,7 @@ export default function App() {
     const clickedPrevention = node.data.label;
 
     setSelectedPrevention((prev) =>
-      prev === clickedPrevention ? null : clickedPrevention
+      prev === clickedPrevention ? null : clickedPrevention,
     );
   };
 
@@ -181,7 +180,7 @@ export default function App() {
 
         const siblingPreventions =
           d.parent.children?.filter(
-            (child: any) => child.data.type === "prevention"
+            (child: any) => child.data.type === "prevention",
           ) || [];
 
         const index = siblingPreventions.indexOf(d);
@@ -196,7 +195,7 @@ export default function App() {
       if (d.data.type === "risk" && d.parent) {
         const siblingRisks =
           d.parent.children?.filter(
-            (child: any) => child.data.type === "risk"
+            (child: any) => child.data.type === "risk",
           ) || [];
 
         const index = siblingRisks.indexOf(d);
@@ -215,7 +214,7 @@ export default function App() {
         const stepPreventions = d.parent.data.preventions || [];
 
         const activePrevention = stepPreventions.find(
-          (p: any) => p.label.label === selectedPrevention
+          (p: any) => p.label.label === selectedPrevention,
         );
 
         if (activePrevention) {
@@ -240,16 +239,16 @@ export default function App() {
               d.data.name === "Start" || d.data.name === "Destination"
                 ? "#f4f65fff"
                 : d.data.type === "location"
-                ? "#e8f5e9"
-                : d.data.type === "risk"
-                ? d.data.severity && d.data.severity >= 4
-                  ? "#ffcdd2"
-                  : "#ffebee"
-                : d.data.type === "prevention"
-                ? selectedPrevention === d.data.name
-                  ? "#a6abffff"
-                  : "#e0f7fa"
-                : "#f6ca9eff",
+                  ? "#e8f5e9"
+                  : d.data.type === "risk"
+                    ? d.data.severity && d.data.severity >= 4
+                      ? "#ffcdd2"
+                      : "#ffebee"
+                    : d.data.type === "prevention"
+                      ? selectedPrevention === d.data.name
+                        ? "#a6abffff"
+                        : "#e0f7fa"
+                      : "#f6ca9eff",
             border:
               d.data.severity && d.data.severity >= 4
                 ? "2px solid red"
@@ -427,7 +426,7 @@ const styles = {
     marginTop: "8px",
     padding: "12px",
     borderRadius: "6px",
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#723feb",
     color: "#fff",
     border: "none",
     fontSize: "14px",

@@ -1,17 +1,21 @@
-import { useEffect, useRef, useState } from "react";
-import * as Location from "expo-location";
-import { DecodedPoint, decodedPolyline } from "@/utils/types";
-import { isUserOnDestination, isUserOnTrack } from "@/utils/locationUtils";
 import { useAuthStore } from "@/store/store";
+import { supabase } from "@/supabase/supabase";
+import { isUserOnDestination, isUserOnTrack } from "@/utils/locationUtils";
+import { DecodedPoint } from "@/utils/types";
+import * as Location from "expo-location";
+import { useEffect, useRef, useState } from "react";
 
 export const useRouteMonitor = (
   location: Location.LocationObject | null,
   onDerail?: (polyline: DecodedPoint[]) => void,
-  onIntervention?: (audioUrl: string) => void
+  onIntervention?: (audioUrl: string) => void,
 ) => {
   const polylines = useAuthStore((state) => state.polylines);
   const [currentPolylineIndex, setCurrentPolylineIndex] = useState<number>(0);
   const setPolyline = useAuthStore((state) => state.setPolyline);
+  const currentTripId = useAuthStore((state) => state.currentTripId);
+  const setCurrentTripId = useAuthStore((state) => state.setCurrentTripId);
+
   const setPolylines = useAuthStore((state) => state.setPolylines);
   const polyline = useAuthStore((state) => state.polyline);
   const [userArrived, setUserArrived] = useState<boolean>(false);
@@ -35,7 +39,7 @@ export const useRouteMonitor = (
     const activePhysicalStep = currentPolylineIndex + 1;
 
     const currentShortenedStepIndex = routeGraph.steps.findIndex((step: any) =>
-      step.mapped_raw_steps.includes(activePhysicalStep)
+      step.mapped_raw_steps.includes(activePhysicalStep),
     );
 
     if (currentShortenedStepIndex === -1) return;
@@ -65,7 +69,7 @@ export const useRouteMonitor = (
   useEffect(() => {
     if (!location || !polylines || polylines.length === 0) return;
     const activeIndex = polylines.findIndex((stepPolyline) =>
-      isUserOnTrack(location, stepPolyline)
+      isUserOnTrack(location, stepPolyline),
     );
 
     if (activeIndex !== -1 && activeIndex !== currentPolylineIndex) {
@@ -93,14 +97,32 @@ export const useRouteMonitor = (
   //effect to reset states when the user reaches their destination
   useEffect(() => {
     if (!location || !polyline) return;
-    if (isUserOnDestination(location, polyline[polyline.length - 1])) {
-      setUserArrived(true);
-      setPolyline(null);
-      setPolylines(null);
-      setCurrentActionText("");
-      setCurrentActionVoice("");
-      setCurrentPolylineIndex(0);
-    }
+
+    const handleArrival = async () => {
+      if (isUserOnDestination(location, polyline[polyline.length - 1])) {
+        setUserArrived(true);
+        setPolyline(null);
+        setPolylines(null);
+        setCurrentActionText("");
+        setCurrentActionVoice("");
+        setCurrentPolylineIndex(0);
+
+        console.log("taskId");
+        console.log(currentTripId);
+        const { data, error } = await supabase
+          .from("trip_history")
+          .update({ successfully_finished: true })
+          .eq("id", currentTripId)
+          .select();
+
+        if (data) console.log(data);
+        if (error) console.log(error);
+
+        setCurrentTripId(null);
+      }
+    };
+
+    handleArrival();
   }, [location, polyline]);
 
   //decode and set polyline, reset state and ref
