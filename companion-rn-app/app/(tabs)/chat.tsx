@@ -9,7 +9,7 @@ import VoiceComponentView from "@/components/VoiceComponent";
 import { useLocationTracker } from "@/hooks/useLocationTracker";
 import { useRouteMonitor } from "@/hooks/useRouteMonitor";
 import { useAuthStore } from "@/store/store";
-import { Chat, DecodedPoint, messageInterface } from "@/utils/types";
+import { Chat, messageInterface } from "@/utils/types";
 import { useGlobalWebSocket } from "@/utils/WebSocketManager";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { PostgrestError } from "@supabase/supabase-js";
@@ -136,11 +136,6 @@ const ChatPage = () => {
     })();
   }, []);
 
-  // useEffect(() => {
-  //   console.log("Recording state changed:", recorderState.isRecording);
-  //   recorderState.isRecording === false && console.log(recorderState);
-  // }, [recorderState.isRecording]);
-
   // record audio function
   const record = async () => {
     try {
@@ -159,59 +154,6 @@ const ChatPage = () => {
     // setIsTalking(false);
     // console.log("stop recording");
   };
-
-  // // handle info from websocket
-  // const handleIncomingPacket = async (
-  //   packet: packetInterface | webPacketInterface
-  // ) => {
-  //   if (!user || !chatId) return;
-  //   if ("performative" in packet) {
-  //     if (packet.performative === "REQUEST") {
-  //       setPendingToolId(packet.pending_tool_id);
-  //       setTaskId(packet.task_id);
-  //       console.log("WE GOT HERE");
-  //       console.log(packet.content.audio_url);
-  //       setAudioUri(packet.content.audio_url);
-  //     }
-
-  //     console.log("-- PACKET ARRIVED --");
-  //     console.log(packet);
-
-  //     if (packet.performative === "INFORM") {
-  //       setPendingToolId(null);
-  //       setTaskId(null);
-
-  //       if (packet.polyline) {
-  //         setPolylineFunction(packet.polyline);
-  //       }
-
-  //       if (packet.individualPolylines) {
-  //         console.log(packet.individualPolylines);
-  //         setIndividualPolylinesFunction(packet.individualPolylines);
-  //       }
-
-  //       if (packet.graph) {
-  //         setGraph(packet.graph);
-  //       }
-
-  //       //and add bot message to ui before fetching
-  //       const modelMesage = {
-  //         role: "assistant",
-  //         content: packet.content.message,
-  //         timestamp: new Date().toISOString(),
-  //       };
-
-  //       setMessages((prev) => (prev ? [...prev, modelMesage] : [modelMesage]));
-  //       console.log("WE GOT HERE, to inform");
-
-  //       setAudioUri(packet.content.audio_url);
-  //     }
-  //     const messages = await getChatMessages(user.id, chatId);
-  //     setMessages(messages);
-
-  //     setLoadingMessage(false);
-  //   }
-  // };
 
   useEffect(() => {
     if (!latestChatPacket) return;
@@ -254,44 +196,9 @@ const ChatPage = () => {
     }
   }, [latestChatPacket]);
 
-  // websocket hook to handle state and
-  // const sendPacket = useChatWebsocket(chatId, handleIncomingPacket);
-
-  const handleDerail = (polyline: DecodedPoint[]) => {
-    const origin = polyline[0];
-    const destination = polyline[polyline.length - 1];
-
-    console.log("handle derail");
-
-    if (user) {
-      console.log("sending [acket]");
-
-      const newPacket = {
-        performative: "INFORM",
-        message_id: uuidv4(),
-        user_id: user.id,
-        task_id: currentTripId ?? uuidv4(),
-        chat_id: chatId ?? uuidv4(),
-        pending_tool_id: pendingToolId,
-        sender: "USER",
-        receiver: "ORCHESTRATOR_AGENT",
-        content: {
-          message: `I am currently at ${location?.coords.latitude}, ${location?.coords.longitude}. I have deviated from the route. Please calculate a new route to the following destination ${destination.lat}, ${destination.lng} by bus and subway.`,
-          lost_coords: `${location?.coords.latitude}, ${location?.coords.longitude}`,
-          destination: `$${destination.lat}, ${destination.lng}`,
-          origin: `${(origin.lat, origin.lng)}`,
-          audio_url: null,
-        },
-      };
-
-      console.log(newPacket);
-      sendPacket(newPacket);
-    }
-  };
-
   // hook handles polyline state
   const { setPolylineFunction, setIndividualPolylinesFunction, userArrived } =
-    useRouteMonitor(location, handleDerail);
+    useRouteMonitor(location);
 
   //reset state when user arrvies to destination
   useEffect(() => {
