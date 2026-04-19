@@ -22,7 +22,7 @@ export const getGmailLogin = async () => {
     // const res = await fetch("http://192.168.1.28:8000/gmailLogin");
     const res = await fetch(
       // "https://isaac-preadditional-tirelessly.ngrok-free.dev/gmailLogin"
-      `${baseURL + "/gmailLogin"}`
+      `${baseURL + "/gmailLogin"}`,
     );
 
     if (!res.ok) {
@@ -52,7 +52,7 @@ export const calculateRouteGraph = async (routeRequest: routeRequest) => {
 
     if (!res.ok) {
       console.log(
-        `failed to calculate map graph: ${res.status} ${res.statusText}`
+        `failed to calculate map graph: ${res.status} ${res.statusText}`,
       );
     }
 
@@ -76,7 +76,7 @@ export const getChatMessages = async (chatId: string, userId: string) => {
         headers: {
           "ngrok-skip-browser-warning": "true",
         },
-      }
+      },
     );
     console.log(`URL BELOW`);
 
@@ -108,7 +108,7 @@ export const sendChatMessage = async (userQuery: userMessage) => {
 
     if (!res.ok) {
       console.log(
-        `failed to handle message submission: ${res.status} ${res.statusText}`
+        `failed to handle message submission: ${res.status} ${res.statusText}`,
       );
     }
 
@@ -146,7 +146,6 @@ export const sendAudio = async (audio: any) => {
     const res = await fetch(`${baseURL + "/chat/transcript"}`, {
       method: "POST",
       headers: {
-        "Content-Type": "multipart/form-data",
         "ngrok-skip-browser-warning": "true",
       },
       body: formData,
@@ -156,7 +155,7 @@ export const sendAudio = async (audio: any) => {
 
     if (!res.ok) {
       console.log(
-        `failed to handle audio message submission: ${res.status} ${res.statusText}`
+        `failed to handle audio message submission: ${res.status} ${res.statusText}`,
       );
     }
 
