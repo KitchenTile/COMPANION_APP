@@ -20,8 +20,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   setPolylines: (polylines: any) => set({ polylines: polylines }),
   setGraph: (graph: any) => set({ graph: graph }),
   setChatId: (chatId: string | null) => set({ chatId: chatId }),
+  setError: (error: string | null) => set({ error: { message: error } }),
   setLatestChatPacket: (packet: any) => set({ latestChatPacket: packet }),
   setCurrentTripId: (id: string | null) => set({ currentTripId: id }),
+  clearError: () => {
+    set({ error: null });
+  },
 
   //user login function
   login: async (email: string, password: string) => {
