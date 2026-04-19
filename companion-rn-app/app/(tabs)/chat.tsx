@@ -21,6 +21,7 @@ import {
   useAudioRecorder,
   useAudioRecorderState,
 } from "expo-audio";
+import { Redirect } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -42,7 +43,7 @@ const ChatPage = () => {
   // user from store
   const user = useAuthStore((state) => state.user);
 
-  const [chatVisible, setChatVisible] = useState<boolean>(false);
+  const [chatVisible, setChatVisible] = useState<boolean>(true);
 
   const [messages, setMessages] = useState<messageInterface[]>([]);
 
@@ -123,6 +124,7 @@ const ChatPage = () => {
   }, [chatId, user]);
 
   useEffect(() => {
+    if (Platform.OS === "web") return;
     (async () => {
       const status = await AudioModule.requestRecordingPermissionsAsync();
       if (!status.granted) {
@@ -303,6 +305,11 @@ const ChatPage = () => {
     }
   };
 
+  // If there is no active user, redirect to root
+  if (!user) {
+    return <Redirect href="/" />;
+  }
+
   return (
     <ThemedView style={{ flex: 1 }}>
       <VoiceComponentView
@@ -361,7 +368,11 @@ const ChatPage = () => {
                     style={styles.input}
                     onChangeText={setUserInput}
                     value={userInput}
-                    placeholder="Record or type.."
+                    placeholder={
+                      Platform.OS !== "web"
+                        ? "Record or type.."
+                        : "Write your message..."
+                    }
                   />
                   {recorderState.isRecording ? (
                     <TouchableOpacity
@@ -372,19 +383,30 @@ const ChatPage = () => {
                     </TouchableOpacity>
                   ) : (
                     <TouchableOpacity
-                      onPress={() =>
-                        userInput.length !== 0 ? sendMessage("text") : record()
-                      }
+                      onPress={() => {
+                        if (userInput.length !== 0) {
+                          sendMessage("text");
+                        } else if (Platform.OS !== "web") {
+                          record();
+                        }
+                      }}
                       style={styles.btn}
+                      disabled={
+                        Platform.OS === "web" && userInput.trim().length === 0
+                      }
                     >
                       {userInput.length !== 0 ? (
                         <Text style={styles.btnTxt}>→</Text>
-                      ) : (
+                      ) : Platform.OS !== "web" ? (
                         <FontAwesome6
                           name="microphone"
                           size={20}
                           color="#4d4c4cff"
                         />
+                      ) : (
+                        <Text style={[styles.btnTxt, { color: "#ccc" }]}>
+                          →
+                        </Text>
                       )}
                     </TouchableOpacity>
                   )}
