@@ -12,6 +12,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import * as d3 from "d3-hierarchy";
 import { LinearGradient } from "expo-linear-gradient";
+import { Redirect } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import CustomNode from "./CustomNodes";
 import LoadingComponent from "./LoadingComponent.web";
@@ -220,6 +221,11 @@ export default function App() {
     setNodes(newNodes);
     setEdges(newEdges);
   }, [travelData, setNodes, setEdges, selectedPrevention]);
+
+  // If there is no active user, redirect to root
+  if (!user) {
+    return <Redirect href="/" />;
+  }
 
   return (
     <div style={{ width: "100%", height: "100vh", backgroundColor: "white" }}>
