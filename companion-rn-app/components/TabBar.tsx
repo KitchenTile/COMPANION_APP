@@ -1,22 +1,20 @@
-import { View, Platform, LayoutChangeEvent } from "react-native";
-import { useLinkBuilder, useTheme } from "@react-navigation/native";
-import { Text, PlatformPressable } from "@react-navigation/elements";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { useAuthStore } from "@/store/store";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { StyleSheet } from "react-native";
-import TabBarButton from "./TabBarButton";
-import { useState } from "react";
+import { useLinkBuilder, useTheme } from "@react-navigation/native";
+import React, { useState } from "react";
+import { LayoutChangeEvent, Platform, StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import React from "react";
+import TabBarButton from "./TabBarButton";
 
 export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { colors } = useTheme();
   const { buildHref } = useLinkBuilder();
+  const user = useAuthStore((state) => state.user);
   let isWeb = false;
 
   const [dimensions, setDimensions] = useState({ width: 100, height: 20 });
@@ -43,6 +41,10 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     };
   });
 
+  if (!user) {
+    return null;
+  }
+
   return (
     <View
       onLayout={onTabBarLayout}
@@ -66,7 +68,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         const label =
           typeof options.tabBarLabel === "string"
             ? options.tabBarLabel
-            : options.title ?? route.name;
+            : (options.title ?? route.name);
 
         const isFocused = state.index === index;
 
