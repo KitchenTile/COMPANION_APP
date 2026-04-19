@@ -3,7 +3,7 @@ import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useAuthStore } from "@/store/store";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 export default function AuthForm() {
   // imports from store
@@ -11,6 +11,9 @@ export default function AuthForm() {
   const logout = useAuthStore((store) => store.logout);
   const signUp = useAuthStore((state) => state.signUp);
   const user = useAuthStore((state) => state.user);
+  const error = useAuthStore((state) => state.error);
+  const setError = useAuthStore((state) => state.setError);
+  const clearError = useAuthStore((state) => state.clearError);
 
   // auth state
   const [loginState, setLoginState] = useState(true);
@@ -18,9 +21,16 @@ export default function AuthForm() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
+  useEffect(() => {
+    console.log(error);
+  }, [error]);
+
   const singUpFunction = async () => {
     // if the input fields are empty, return
-    if (email === "" || password === "" || name === "") return;
+    if (email === "" || password === "" || name === "") {
+      setError("Please enter valid creadentials");
+      return;
+    }
     // sign up and log in
     await signUp(name, email, password);
     await login(email, password);
@@ -28,10 +38,18 @@ export default function AuthForm() {
 
   const logInFunction = async () => {
     // if the input fields are empty, return
-    if (email === "" || password === "") return;
+    if (email === "" || password === "") {
+      setError("Please enter valid creadentials");
+      return;
+    }
     console.log(`logging in ${email}`);
     //log in
     await login(email, password);
+  };
+
+  const toggleMode = () => {
+    setLoginState(!loginState);
+    clearError();
   };
 
   return (
@@ -40,7 +58,7 @@ export default function AuthForm() {
         <ThemedText type="title" style={styles.titleText}>
           {loginState ? "Log In" : "Create Account"}
         </ThemedText>
-        <TouchableOpacity onPress={() => setLoginState(!loginState)}>
+        <TouchableOpacity onPress={toggleMode}>
           <ThemedText style={styles.toggleText}>
             {loginState
               ? "Need an account? Sign up"
@@ -79,6 +97,19 @@ export default function AuthForm() {
             onChangeText={setPassword}
             style={styles.input}
           />
+          {error && (
+            <View
+              style={[
+                styles.input,
+                {
+                  borderColor: "rgba(251, 55, 55, 1)",
+                  backgroundColor: "rgba(254, 193, 193, 1)",
+                },
+              ]}
+            >
+              <ThemedText>{error.message}</ThemedText>
+            </View>
+          )}
         </ThemedView>
         <View style={styles.line} />
         <TouchableOpacity
@@ -113,6 +144,7 @@ const styles = StyleSheet.create({
     borderColor: "#b3b3b36e",
     width: "100%",
     gap: 10,
+    marginBottom: 50,
   },
   titleContainer: {
     alignItems: "flex-start",
