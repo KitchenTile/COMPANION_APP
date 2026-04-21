@@ -266,6 +266,26 @@ const ChatPage = () => {
 
       console.log(res);
 
+      if (messageType === "audio" && res?.data?.message) {
+        setMessages((prev) => {
+          if (!prev) return prev;
+
+          const updatedMessages = [...prev];
+
+          // Find the last audio placeholder message added to the UI
+          const placeholderIndex = updatedMessages.findLastIndex(
+            (msg) => msg.role === "user" && msg.content === "Audio placeholder",
+          );
+
+          // Overwrite the placeholder with the returned transcription
+          if (placeholderIndex !== -1) {
+            updatedMessages[placeholderIndex].content = res.data.message;
+          }
+
+          return updatedMessages;
+        });
+      }
+
       // if it's a new chat, add the chat Id to open the websocket connection
       if (!chatId) {
         setChatId(res.chat_id);
