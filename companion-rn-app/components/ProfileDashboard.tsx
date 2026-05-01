@@ -1,10 +1,10 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 // We will create these two components next!
-import { ThemedView } from "./ThemedView";
-import { ThemedText } from "./ThemedText";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { ThemedText } from "./ThemedText";
+import { ThemedView } from "./ThemedView";
 
 export interface UserProfile {
   identity: {
@@ -25,7 +25,7 @@ export interface UserProfile {
 
 export default function ProfileDashboard({ userProfile }: any) {
   return (
-    <ThemedView style={{ marginTop: 10, gap: 12 }}>
+    <ThemedView style={{ marginTop: 10, marginBottom: 50, gap: 12 }}>
       <ThemedText type="title">
         {userProfile.identity.name}'s Profile
       </ThemedText>
