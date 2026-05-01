@@ -10,7 +10,6 @@ import { useLocationTracker } from "@/hooks/useLocationTracker";
 import { useRouteMonitor } from "@/hooks/useRouteMonitor";
 import { useAuthStore } from "@/store/store";
 import { Chat, messageInterface } from "@/utils/types";
-import { useGlobalWebSocket } from "@/utils/WebSocketManager";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { PostgrestError } from "@supabase/supabase-js";
 import {
@@ -47,7 +46,6 @@ const ChatPage = () => {
 
   const [messages, setMessages] = useState<messageInterface[]>([]);
 
-  const { sendPacket } = useGlobalWebSocket();
   const chatId = useAuthStore((state) => state.chatId);
   const setChatId = useAuthStore((state) => state.setChatId);
   const setCurrentTripId = useAuthStore((state) => state.setCurrentTripId);
@@ -153,8 +151,6 @@ const ChatPage = () => {
   const stopRecording = async () => {
     await audioRecorder.stop();
     sendMessage("audio");
-    // setIsTalking(false);
-    // console.log("stop recording");
   };
 
   useEffect(() => {
