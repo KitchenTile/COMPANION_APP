@@ -5,6 +5,7 @@ import { useLocationTracker } from "@/hooks/useLocationTracker";
 import { useRouteMonitor } from "@/hooks/useRouteMonitor";
 import { useAuthStore } from "@/store/store";
 import { supabase } from "@/supabase/supabase";
+import { useGlobalWebSocket } from "@/utils/WebSocketManager";
 import {
   AntDesign,
   Feather,
@@ -17,23 +18,29 @@ import { useAudioPlayer } from "expo-audio";
 import React, { useEffect, useMemo, useState } from "react";
 import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
+import { v4 as uuidv4 } from "uuid";
 import BugReportComponent from "./BugReportComponent";
 import ContentModal from "./ContentModal";
+import UserLostComponent from "./UserLostComponent";
 
 export default function App() {
   //TODO:
   // Need to create components for info pannel
-  // General fixes and improvements in style
 
   const user = useAuthStore((state) => state.user);
 
   const polylines = useAuthStore((state) => state.polylines);
+  const polyline = useAuthStore((state) => state.polyline);
 
   const currentTripId = useAuthStore((state) => state.currentTripId);
 
   const [showArrivalModal, setShowArrivalModal] = useState(false);
   const [showBugModal, setShowBugModal] = useState(false);
+
   const [audioPlays, setAudioPlays] = useState<number>(0);
+
+  const { sendPacket } = useGlobalWebSocket();
+  const chatId = useAuthStore((state) => state.chatId);
 
   const screenWidth = Dimensions.get("window").width;
 
@@ -45,27 +52,61 @@ export default function App() {
     currentActionText,
     currentActionVoice,
     userArrived,
+    isUserDerailed,
+    ignoreDerailTemporarily,
   } = useRouteMonitor(location);
 
-  // useEffect(() => {
-  //   console.log(" -- NEW POLYLINES: --");
-  //   console.log(polylines);
-  // }, [polylines]);
+  const [showLostModal, setShowLostModal] = useState(isUserDerailed);
+
+  useEffect(() => {
+    setShowLostModal(isUserDerailed);
+  }, [isUserDerailed]);
+
+  const handleDerail = () => {
+    setShowLostModal(false);
+    if (!polyline) return;
+    const origin = polyline[0];
+    const destination = polyline[polyline.length - 1];
+
+    console.log("handle derail");
+
+    if (user) {
+      console.log("sending [acket]");
+
+      const newPacket = {
+        performative: "INFORM",
+        message_id: uuidv4(),
+        user_id: user.id,
+        task_id: currentTripId ?? uuidv4(),
+        chat_id: chatId ?? uuidv4(),
+        pending_tool_id: null,
+        sender: "USER",
+        receiver: "ORCHESTRATOR_AGENT",
+        content: {
+          message: `I am currently at ${location?.coords.latitude}, ${location?.coords.longitude}. I have deviated from the route. Please calculate a new route to the following destination ${destination.lat}, ${destination.lng} by bus and subway.`,
+          lost_coords: `${location?.coords.latitude}, ${location?.coords.longitude}`,
+          destination: `$${destination.lat}, ${destination.lng}`,
+          origin: `${(origin.lat, origin.lng)}`,
+          audio_url: null,
+        },
+      };
+
+      console.log(newPacket);
+      sendPacket(newPacket);
+    }
+  };
+
+  // User claims they aren't lost, trigger the cooldown
+  const handleNotLost = () => {
+    setShowLostModal(false);
+    ignoreDerailTemporarily();
+  };
 
   useEffect(() => {
     if (userArrived) {
       setShowArrivalModal(true);
     }
   }, [userArrived]);
-
-  useEffect(() => {
-    console.log(" -- NEW AUDIO FILE: --");
-    console.log(currentActionVoice);
-  }, [currentActionVoice]);
-
-  const isRouteActive = useMemo(() => {
-    return polylines && polylines.length > 0 && !userArrived;
-  }, [polylines, userArrived]);
 
   const calculateRouteLengths = (
     polylines: { lat: number; lng: number }[][] | null,
@@ -415,6 +456,12 @@ export default function App() {
         visible={showBugModal}
         onClose={() => setShowBugModal(false)}
         iconName="bug"
+      />
+      <UserLostComponent
+        visible={showLostModal}
+        onClose={handleNotLost}
+        iconName="location-arrow"
+        handleDerail={handleDerail}
       />
     </View>
   );
