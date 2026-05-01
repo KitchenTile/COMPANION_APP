@@ -25,7 +25,6 @@ const transformDataForD3 = (data: TravelData): TreeNode => {
     const preventionNodes: TreeNode[] = currentStep.preventions.map(
       (prevention, index) => {
         return {
-          // Appending 'prev' to ensure unique IDs across the graph
           id: `${currentStep.node_to}-prev-${index}`,
           name: prevention.label.label,
           action_text: prevention.label.action_text,
