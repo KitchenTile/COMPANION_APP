@@ -1,9 +1,6 @@
 import React, { useEffect } from "react";
 
 const LoadingComponent = () => {
-  useEffect(() => {
-    console.log("loading");
-  }, []);
   // We define the keyframes in a string to inject into a style tag
   const animationStyles = `
     @keyframes rotate {
