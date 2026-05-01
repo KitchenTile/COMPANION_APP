@@ -15,12 +15,14 @@ export const useRouteMonitor = (
   const setPolyline = useAuthStore((state) => state.setPolyline);
   const currentTripId = useAuthStore((state) => state.currentTripId);
   const setCurrentTripId = useAuthStore((state) => state.setCurrentTripId);
+  const [isUserDerailed, setIsUserDerailed] = useState(false);
 
   const setPolylines = useAuthStore((state) => state.setPolylines);
   const polyline = useAuthStore((state) => state.polyline);
   const [userArrived, setUserArrived] = useState<boolean>(false);
   const [currentActionText, setCurrentActionText] = useState<string>("");
   const [currentActionVoice, setCurrentActionVoice] = useState<string>("");
+  const [isOnCooldown, setIsOnCooldown] = useState<boolean>(false);
 
   const derailTriggeredRef = useRef(false);
 
@@ -79,7 +81,8 @@ export const useRouteMonitor = (
 
   //effect to keep an eye on user location and notify if they derail
   useEffect(() => {
-    if (!location || !polyline || derailTriggeredRef.current) return;
+    if (!location || !polyline || derailTriggeredRef.current || isOnCooldown)
+      return;
 
     const onTrack = isUserOnTrack(location, polyline);
 
@@ -90,11 +93,11 @@ export const useRouteMonitor = (
     if (!onTrack) {
       console.log("USER DERAILED, ASKING FOR NEW DIRECTIONS");
       derailTriggeredRef.current = true;
-      onDerail && onDerail(polyline);
+      setIsUserDerailed(true);
     }
-  }, [location, polyline, onDerail]);
+  }, [location, polyline, isOnCooldown]);
 
-  //effect to reset states when the user reaches their destination
+  //effect to reset states and flag finished trip when the user reaches their destination
   useEffect(() => {
     if (!location || !polyline) return;
 
@@ -150,6 +153,18 @@ export const useRouteMonitor = (
     derailTriggeredRef.current = false;
   };
 
+  //function in case user does not want the route to be recalculated
+  const ignoreDerailTemporarily = () => {
+    setIsUserDerailed(false);
+    setIsOnCooldown(true);
+
+    // Wait 2 minutes before we start checking if they are lost again
+    setTimeout(() => {
+      setIsOnCooldown(false);
+      derailTriggeredRef.current = false;
+    }, 120000);
+  };
+
   return {
     polyline,
     setPolylineFunction,
@@ -158,5 +173,7 @@ export const useRouteMonitor = (
     currentActionText,
     currentActionVoice,
     userArrived,
+    isUserDerailed,
+    ignoreDerailTemporarily,
   };
 };
