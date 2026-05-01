@@ -20,7 +20,7 @@ export default function UserLostComponent({
     <ContentModal
       visible={visible}
       onClose={onClose}
-      buttonText="I'm Lost"
+      buttonText="Yes, recalculate route"
       onButtonPress={handleDerail}
       iconName={iconName}
     >
@@ -30,7 +30,7 @@ export default function UserLostComponent({
 
       <ThemedText style={styles.subtitle}>
         Your location shows you are going in the wrong direction. Would you like
-        us to recalculate your route?
+        your route to be recalculated?
       </ThemedText>
     </ContentModal>
   );
